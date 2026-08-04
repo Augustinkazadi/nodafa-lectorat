@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-
+import { authOptions } from "../auth/[...nextauth]/route";
 const prisma = new PrismaClient();
 
 export async function POST(
@@ -57,6 +56,7 @@ export async function POST(
       },
     });
 
+    // Notification seulement si on like le post de quelqu'un d'autre
     if (targetPost.authorId !== userId) {
       await prisma.notification.create({
         data: {
