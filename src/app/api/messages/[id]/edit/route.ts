@@ -1,10 +1,14 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../auth/[...nextauth]/route";
+import { authOptions } from "../../../auth/[...nextauth]/route";
+
 const prisma = new PrismaClient();
 
-export async function PUT(req: Request, props: { params: Promise<{ id: string }> }) {
+export async function PUT(
+  req: Request,
+  props: { params: Promise<{ id: string }> }
+) {
   try {
     const session = await getServerSession(authOptions);
     const userId = parseInt((session?.user as any)?.id);

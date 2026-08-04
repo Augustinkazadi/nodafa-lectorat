@@ -57,7 +57,6 @@ export async function POST(
       },
     });
 
-    // Notification seulement si on like le post de quelqu'un d'autre
     if (targetPost.authorId !== userId) {
       await prisma.notification.create({
         data: {
