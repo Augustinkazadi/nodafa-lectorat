@@ -28,9 +28,10 @@ export async function GET() {
 
     // Lectures du jour (annonces spirituelles) + lives → journal
     // Calendrier liturgique (LiturgicalEvent) → UNIQUEMENT /calendrier (jamais ici)
+    // Lectures de tous les jours (semaine + dimanches préparés) → journal
     const readings = await prisma.dailyReading.findMany({
       orderBy: { date: "desc" },
-      take: 14,
+      take: 28,
     });
     const lives = await prisma.live.findMany({
       orderBy: { createdAt: "desc" },
@@ -54,10 +55,14 @@ export async function GET() {
       psalm: r.psalm || null,
       gospel: r.gospel || null,
       liturgicalColor: r.liturgicalColor || null,
+      liturgicalSeason: r.liturgicalSeason || null,
+      liturgicalYear: r.liturgicalYear || null,
+      isSunday: r.isSunday,
       image: r.image || null,
       mediaUrl: r.image || null,
       mediaType: r.image ? "IMAGE" : null,
-      createdAt: r.createdAt,
+      // Tri du fil selon le jour liturgique (lun→dim inclus)
+      createdAt: r.date,
       author: { prenom: "Paroisse Notre Dame de Fatima", nom: "", photo: null },
       likes: [],
       comments: [],

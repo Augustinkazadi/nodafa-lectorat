@@ -10,6 +10,7 @@ export default function AdminLecturesPage() {
   const [status, setStatus] = useState("");
   const [syncing, setSyncing] = useState(false);
   const [syncingSundays, setSyncingSundays] = useState(false);
+  const [syncingWeek, setSyncingWeek] = useState(false);
   const photoRefs = useRef<Record<number, HTMLInputElement | null>>({});
   const [form, setForm] = useState({
     title: "",
@@ -52,7 +53,7 @@ export default function AdminLecturesPage() {
 
   const syncSundays = async () => {
     setSyncingSundays(true);
-    setStatus("Publication des prochains dimanches...");
+    setStatus("Publication semaine + dimanches...");
     try {
       const res = await fetch("/api/lectures/sync", {
         method: "POST",
@@ -61,12 +62,32 @@ export default function AdminLecturesPage() {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.message || "Erreur sync");
-      setStatus(`✅ ${data.message || "Dimanches publiés"} — les lecteurs peuvent préparer à l’avance`);
+      setStatus(`✅ ${data.message || "Publié"} — journal (chaque jour) + préparation des dimanches`);
       load();
     } catch (e: any) {
       setStatus("❌ " + (e.message || "Sync impossible"));
     } finally {
       setSyncingSundays(false);
+    }
+  };
+
+  const syncWeek = async () => {
+    setSyncingWeek(true);
+    setStatus("Publication des lectures de la semaine pour le journal...");
+    try {
+      const res = await fetch("/api/lectures/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode: "week" }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.message || "Erreur sync");
+      setStatus(`✅ ${data.message || "Semaine publiée"} — visibles dans le Journal`);
+      load();
+    } catch (e: any) {
+      setStatus("❌ " + (e.message || "Sync impossible"));
+    } finally {
+      setSyncingWeek(false);
     }
   };
 
@@ -138,17 +159,31 @@ export default function AdminLecturesPage() {
           ou « Dimanche du Christ Roi de l&apos;univers ».
         </p>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <button type="button" className="nodafa-btn nodafa-btn-primary" onClick={syncAelf} disabled={syncing || syncingSundays}>
+          <button
+            type="button"
+            className="nodafa-btn nodafa-btn-primary"
+            onClick={syncAelf}
+            disabled={syncing || syncingSundays || syncingWeek}
+          >
             {syncing ? "Synchronisation..." : "📥 Lecture du jour"}
+          </button>
+          <button
+            type="button"
+            className="nodafa-btn nodafa-btn-primary"
+            style={{ background: "#1d4ed8" }}
+            onClick={syncWeek}
+            disabled={syncing || syncingSundays || syncingWeek}
+          >
+            {syncingWeek ? "Publication..." : "📰 Semaine → Journal (lun–dim)"}
           </button>
           <button
             type="button"
             className="nodafa-btn nodafa-btn-primary"
             style={{ background: "#0f766e" }}
             onClick={syncSundays}
-            disabled={syncing || syncingSundays}
+            disabled={syncing || syncingSundays || syncingWeek}
           >
-            {syncingSundays ? "Publication..." : "📅 Publier les 6 prochains dimanches"}
+            {syncingSundays ? "Publication..." : "📅 Semaine + 6 dimanches"}
           </button>
         </div>
       </div>

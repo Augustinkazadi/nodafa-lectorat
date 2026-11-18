@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import {
+  currentWeekDates,
   formatLiturgicalTitle,
   isLiturgicalSunday,
   liturgicalSeasonLabel,
@@ -111,6 +112,16 @@ export async function syncDailyReadingFromAelf(isoDate = dateKey()) {
 
 export async function syncUpcomingSundays(count = 6) {
   const dates = nextSundayDates(count);
+  const readings = [];
+  for (const iso of dates) {
+    readings.push(await syncDailyReadingFromAelf(iso));
+  }
+  return readings;
+}
+
+/** Publie lun–dim de la semaine en cours → visibles dans le journal chaque jour. */
+export async function syncCurrentWeek() {
+  const dates = currentWeekDates();
   const readings = [];
   for (const iso of dates) {
     readings.push(await syncDailyReadingFromAelf(iso));

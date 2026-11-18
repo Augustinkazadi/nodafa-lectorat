@@ -117,6 +117,13 @@ export function currentLiturgicalBanner(info: {
   return null;
 }
 
+function toIsoUtc(d: Date) {
+  const y = d.getUTCFullYear();
+  const m = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const dayNum = String(d.getUTCDate()).padStart(2, "0");
+  return `${y}-${m}-${dayNum}`;
+}
+
 export function nextSundayDates(count = 6, from = new Date()) {
   const dates: string[] = [];
   const d = new Date(Date.UTC(from.getFullYear(), from.getMonth(), from.getDate(), 12));
@@ -124,11 +131,22 @@ export function nextSundayDates(count = 6, from = new Date()) {
   const add = day === 0 ? 0 : 7 - day;
   d.setUTCDate(d.getUTCDate() + add);
   for (let i = 0; i < count; i++) {
-    const y = d.getUTCFullYear();
-    const m = String(d.getUTCMonth() + 1).padStart(2, "0");
-    const dayNum = String(d.getUTCDate()).padStart(2, "0");
-    dates.push(`${y}-${m}-${dayNum}`);
+    dates.push(toIsoUtc(d));
     d.setUTCDate(d.getUTCDate() + 7);
+  }
+  return dates;
+}
+
+/** Lundi → dimanche de la semaine liturgique courante (pour le journal). */
+export function currentWeekDates(from = new Date()) {
+  const d = new Date(Date.UTC(from.getFullYear(), from.getMonth(), from.getDate(), 12));
+  const day = d.getUTCDay(); // 0=dimanche
+  const mondayOffset = day === 0 ? -6 : 1 - day;
+  d.setUTCDate(d.getUTCDate() + mondayOffset);
+  const dates: string[] = [];
+  for (let i = 0; i < 7; i++) {
+    dates.push(toIsoUtc(d));
+    d.setUTCDate(d.getUTCDate() + 1);
   }
   return dates;
 }

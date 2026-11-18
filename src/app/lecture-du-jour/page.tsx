@@ -61,17 +61,21 @@ export default function LectureDuJourPage() {
       })
       .then((list: Reading[]) => {
         setReadings(Array.isArray(list) ? list : []);
-        const today = todayIso();
-        const prefer =
-          list.find((r) => isoDay(r.date) === today) ||
-          list.find((r) => r.isSunday && isoDay(r.date) >= today) ||
-          [...list].reverse().find((r) => r.isSunday) ||
-          list[list.length - 1];
-        if (prefer) setSelectedId(prefer.id);
       })
       .catch(() => setError("Impossible de charger les lectures pour le moment."))
       .finally(() => setLoading(false));
   }, [status, router]);
+
+  const selected = readings.find((r) => r.id === selectedId) || null;
+
+  useEffect(() => {
+    if (!selected) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [selected]);
 
   const today = todayIso();
 
@@ -84,8 +88,6 @@ export default function LectureDuJourPage() {
     }
     return list.sort((a, b) => isoDay(a.date).localeCompare(isoDay(b.date)));
   }, [readings, filter, today]);
-
-  const selected = readings.find((r) => r.id === selectedId) || null;
 
   if (status === "loading" || loading) {
     return <div style={{ padding: 50, textAlign: "center" }}>Chargement des lectures...</div>;
@@ -105,7 +107,7 @@ export default function LectureDuJourPage() {
       <main style={{ maxWidth: 860, margin: "0 auto", padding: "20px 16px 36px" }}>
         <h1 style={{ margin: "0 0 8px", fontFamily: "var(--font-display)", fontSize: 30 }}>Lectures</h1>
         <p style={{ margin: "0 0 12px", color: "var(--muted)", lineHeight: 1.45 }}>
-          Toutes les lectures publiées — préparez la messe à l’avance.
+          Touchez un dimanche pour ouvrir les lectures. La préparation de la messe reste ici ; chaque jour apparaît aussi dans le Journal.
         </p>
 
         {(() => {
@@ -171,7 +173,7 @@ export default function LectureDuJourPage() {
           ))}
         </div>
 
-        <div style={{ display: "grid", gap: 10, marginBottom: 18 }}>
+        <div style={{ display: "grid", gap: 10 }}>
           {visible.length === 0 && (
             <div className="nodafa-card" style={{ padding: 20, color: "#64748b" }}>
               Aucune lecture publiée pour ce filtre. Un admin peut publier les prochains dimanches depuis l’espace Lectures.
@@ -181,7 +183,6 @@ export default function LectureDuJourPage() {
             const day = isoDay(r.date);
             const isToday = day === today;
             const isFuture = day > today;
-            const active = selectedId === r.id;
             return (
               <button
                 key={r.id}
@@ -193,13 +194,13 @@ export default function LectureDuJourPage() {
                   width: "100%",
                   textAlign: "left",
                   padding: 16,
-                  border: active ? "2px solid #1877f2" : "1px solid #e2e8f0",
-                  background: active ? "#f0f7ff" : "#fff",
+                  border: "1px solid #e2e8f0",
+                  background: "#fff",
                   cursor: "pointer",
                 }}
               >
-                <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
-                  <div>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "flex-start" }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 12, color: "#64748b", fontWeight: 700 }}>
                       {new Date(r.date).toLocaleDateString("fr-FR", {
                         weekday: "long",
@@ -211,6 +212,7 @@ export default function LectureDuJourPage() {
                     <div style={{ marginTop: 4, fontWeight: 800, fontSize: 17, color: "#0f172a", lineHeight: 1.35 }}>
                       {r.title}
                     </div>
+                    <div style={{ marginTop: 8, color: "#1877f2", fontWeight: 700, fontSize: 13 }}>Ouvrir les lectures →</div>
                   </div>
                   <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "flex-start" }}>
                     {isToday && <span className="admin-chip admin-chip--admin">Aujourd’hui</span>}
@@ -236,11 +238,41 @@ export default function LectureDuJourPage() {
             );
           })}
         </div>
+      </main>
 
-        {selected && (
-          <article className="nodafa-card" style={{ padding: 20 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", marginBottom: 12 }}>
-              <div>
+      {selected && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={selected.title}
+          onClick={() => setSelectedId(null)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 90,
+            background: "rgba(15, 23, 42, 0.55)",
+            display: "flex",
+            alignItems: "flex-end",
+            justifyContent: "center",
+            padding: "12px 12px 0",
+          }}
+        >
+          <article
+            onClick={(e) => e.stopPropagation()}
+            className="nodafa-card"
+            style={{
+              width: "100%",
+              maxWidth: 860,
+              maxHeight: "92vh",
+              overflow: "auto",
+              padding: 20,
+              borderRadius: "18px 18px 0 0",
+              marginBottom: 0,
+              boxShadow: "0 -8px 40px rgba(0,0,0,.25)",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "flex-start", marginBottom: 14 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 13, color: "#64748b", fontWeight: 700 }}>
                   {new Date(selected.date).toLocaleDateString("fr-FR", {
                     weekday: "long",
@@ -249,32 +281,43 @@ export default function LectureDuJourPage() {
                     year: "numeric",
                   })}
                 </div>
-                <h2 style={{ margin: "6px 0 0", fontFamily: "var(--font-display)", fontSize: 26 }}>{selected.title}</h2>
+                <h2 style={{ margin: "6px 0 0", fontFamily: "var(--font-display)", fontSize: 24, lineHeight: 1.25 }}>
+                  {selected.title}
+                </h2>
               </div>
-              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                {selected.liturgicalSeason && (
-                  <span className="admin-chip" style={{ background: "#ecfdf5", color: "#047857" }}>
-                    {selected.liturgicalSeason}
-                  </span>
-                )}
-                {selected.liturgicalYear && (
-                  <span className="admin-chip" style={{ background: "#fef3c7", color: "#92400e" }}>
-                    Année liturgique {selected.liturgicalYear}
-                  </span>
-                )}
-                {selected.liturgicalColor && (
-                  <span className="admin-chip admin-chip--admin" style={{ textTransform: "capitalize" }}>
-                    Couleur : {selected.liturgicalColor}
-                  </span>
-                )}
-              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedId(null)}
+                className="nodafa-btn nodafa-btn-ghost"
+                style={{ padding: "10px 14px", flexShrink: 0, fontWeight: 800 }}
+              >
+                Fermer
+              </button>
+            </div>
+
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 14 }}>
+              {selected.liturgicalSeason && (
+                <span className="admin-chip" style={{ background: "#ecfdf5", color: "#047857" }}>
+                  {selected.liturgicalSeason}
+                </span>
+              )}
+              {selected.liturgicalYear && (
+                <span className="admin-chip" style={{ background: "#fef3c7", color: "#92400e" }}>
+                  Année liturgique {selected.liturgicalYear}
+                </span>
+              )}
+              {selected.liturgicalColor && (
+                <span className="admin-chip admin-chip--admin" style={{ textTransform: "capitalize" }}>
+                  Couleur : {selected.liturgicalColor}
+                </span>
+              )}
             </div>
 
             {selected.image && (
               <img
                 src={selected.image}
                 alt="Illustration de la lecture"
-                style={{ width: "100%", borderRadius: 14, maxHeight: 360, objectFit: "cover", marginBottom: 16 }}
+                style={{ width: "100%", borderRadius: 14, maxHeight: 280, objectFit: "cover", marginBottom: 16 }}
               />
             )}
 
@@ -293,9 +336,18 @@ export default function LectureDuJourPage() {
             <div style={{ marginTop: 16, fontSize: 12, color: "#94a3b8" }}>
               Source : {selected.source === "aelf" ? "AELF (synchronisation)" : "Publication manuelle"}
             </div>
+
+            <button
+              type="button"
+              onClick={() => setSelectedId(null)}
+              className="nodafa-btn nodafa-btn-primary"
+              style={{ width: "100%", marginTop: 18, padding: "14px 16px" }}
+            >
+              Retour à la liste
+            </button>
           </article>
-        )}
-      </main>
+        </div>
+      )}
     </div>
   );
 }
