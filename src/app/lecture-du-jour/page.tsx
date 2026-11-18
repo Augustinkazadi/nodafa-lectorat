@@ -250,7 +250,7 @@ export default function LectureDuJourPage() {
           style={{
             position: "fixed",
             inset: 0,
-            zIndex: 90,
+            zIndex: 220,
             background: "rgba(15, 23, 42, 0.55)",
             display: "flex",
             alignItems: "flex-end",
@@ -265,14 +265,26 @@ export default function LectureDuJourPage() {
               width: "100%",
               maxWidth: 860,
               maxHeight: "92vh",
-              overflow: "auto",
-              padding: 20,
+              display: "flex",
+              flexDirection: "column",
+              padding: 0,
               borderRadius: "18px 18px 0 0",
               marginBottom: 0,
               boxShadow: "0 -8px 40px rgba(0,0,0,.25)",
+              overflow: "hidden",
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "flex-start", marginBottom: 14 }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                gap: 12,
+                alignItems: "flex-start",
+                padding: "16px 20px 12px",
+                borderBottom: "1px solid #e2e8f0",
+                flexShrink: 0,
+              }}
+            >
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 13, color: "#64748b", fontWeight: 700 }}>
                   {new Date(selected.date).toLocaleDateString("fr-FR", {
@@ -295,6 +307,7 @@ export default function LectureDuJourPage() {
                 Fermer
               </button>
             </div>
+            <div style={{ flex: 1, overflow: "auto", padding: "14px 20px 8px" }}>
 
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 14 }}>
               {selected.liturgicalSeason && (
@@ -334,18 +347,28 @@ export default function LectureDuJourPage() {
             />
             <ReadingBlock title="Évangile" text={selected.gospel} accent emptyLabel="Évangile non disponible" />
 
-            <div style={{ marginTop: 16, fontSize: 12, color: "#94a3b8" }}>
+            <div style={{ marginTop: 16, marginBottom: 8, fontSize: 12, color: "#94a3b8" }}>
               Source : {selected.source === "aelf" ? "AELF (synchronisation)" : "Publication manuelle"}
             </div>
+            </div>
 
-            <button
-              type="button"
-              onClick={() => setSelectedId(null)}
-              className="nodafa-btn nodafa-btn-primary"
-              style={{ width: "100%", marginTop: 18, padding: "14px 16px" }}
+            <div
+              style={{
+                flexShrink: 0,
+                padding: "12px 16px calc(12px + env(safe-area-inset-bottom))",
+                borderTop: "1px solid #e2e8f0",
+                background: "#fff",
+              }}
             >
-              Retour à la liste
-            </button>
+              <button
+                type="button"
+                onClick={() => setSelectedId(null)}
+                className="nodafa-btn nodafa-btn-primary"
+                style={{ width: "100%", padding: "14px 16px", fontWeight: 800 }}
+              >
+                Retour à la liste
+              </button>
+            </div>
           </article>
         </div>
       )}

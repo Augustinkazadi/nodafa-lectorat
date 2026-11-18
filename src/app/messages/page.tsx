@@ -6,6 +6,7 @@ import Link from "next/link";
 import { uploadMediaFile } from "@/lib/clientUpload";
 import AppNavbar from "@/components/AppNavbar";
 import { resolveMessageMediaType } from "@/lib/media";
+import { WaAudioPlayer, WaVideoPlayer } from "@/components/WaMediaPlayers";
 
 const EMOJIS = ["😀", "😂", "🙏", "❤️", "👍", "🎉", "🔥", "😊", "🙌", "✝️", "😇", "👏"];
 
@@ -31,11 +32,15 @@ export default function MessagesPage() {
   const [recording, setRecording] = useState(false);
   const [mobileShowChat, setMobileShowChat] = useState(false);
   const [unreadCount, setUnreadCount] = useState({ notifications: 0, messages: 0 });
+  const [kbOffset, setKbOffset] = useState(0);
+  const [openingBroadcast, setOpeningBroadcast] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+  const isAdmin = (session?.user as any)?.role === "ADMIN";
+  const inChat = !!(activeConvId || receiverId) && mobileShowChat;
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login");
@@ -58,6 +63,26 @@ export default function MessagesPage() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, activeConvId]);
+
+  useEffect(() => {
+    if (!inChat) {
+      setKbOffset(0);
+      return;
+    }
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const sync = () => {
+      const offset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+      setKbOffset(offset);
+    };
+    vv.addEventListener("resize", sync);
+    vv.addEventListener("scroll", sync);
+    sync();
+    return () => {
+      vv.removeEventListener("resize", sync);
+      vv.removeEventListener("scroll", sync);
+    };
+  }, [inChat]);
 
   const fetchConversations = async () => {
     try {
@@ -99,6 +124,31 @@ export default function MessagesPage() {
     setActiveConvId(null);
     setMessages([]);
     setMobileShowChat(true);
+  };
+
+  const openBroadcast = async () => {
+    setOpeningBroadcast(true);
+    try {
+      const formData = new FormData();
+      formData.append("broadcast", "1");
+      formData.append("content", "👋 Bienvenue dans les annonces du lectorat.");
+      const existing = conversations.find((c) => c.isBroadcast);
+      if (existing) {
+        await fetchMessages(existing.id);
+        return;
+      }
+      const res = await fetch("/api/messages", { method: "POST", body: formData });
+      if (res.ok) {
+        const data = await res.json();
+        await fetchConversations();
+        if (data.conversationId) await fetchMessages(data.conversationId);
+      } else {
+        const err = await res.json().catch(() => ({}));
+        alert(err.message || "Impossible d’ouvrir l’annonce à tous");
+      }
+    } finally {
+      setOpeningBroadcast(false);
+    }
   };
 
   const clearFile = () => {
@@ -231,12 +281,17 @@ export default function MessagesPage() {
     setRecording(false);
   };
 
+  const activeConv = useMemo(
+    () => conversations.find((c) => c.id === activeConvId) || null,
+    [conversations, activeConvId]
+  );
+
   const activePeer = useMemo(() => {
     if (receiverId) return users.find((u) => u.id === receiverId);
     if (!activeConvId) return null;
-    const conv = conversations.find((c) => c.id === activeConvId);
-    return conv?.participants?.map((p: any) => p.user).find((u: any) => u.id !== userId) || null;
-  }, [receiverId, activeConvId, conversations, users, userId]);
+    if (activeConv?.isBroadcast) return null;
+    return activeConv?.participants?.map((p: any) => p.user).find((u: any) => u.id !== userId) || null;
+  }, [receiverId, activeConvId, activeConv, users, userId]);
 
   const filteredConversations = conversations.filter((conv) => {
     if (!search.trim()) return true;
@@ -257,20 +312,24 @@ export default function MessagesPage() {
   }
 
   return (
-    <div className="messages-page" style={{ minHeight: "100vh", background: "#111b21" }}>
+    <div
+      className={`messages-page${inChat ? " messages-page--chat" : ""}`}
+      style={{ minHeight: "100vh", background: "#111b21" }}
+    >
       <AppNavbar
         userName={session?.user?.name}
         userPhoto={(session?.user as any)?.image}
-        isAdmin={(session?.user as any)?.role === "ADMIN"}
+        isAdmin={isAdmin}
         unreadNotifications={unreadCount.notifications}
         unreadMessages={unreadCount.messages}
         active="messages"
+        hideChrome={inChat}
       />
       <div
         className="messages-shell"
         style={{
           display: "flex",
-          height: "calc(100vh - 58px)",
+          height: inChat ? "100dvh" : "calc(100dvh - 58px)",
           fontFamily: "Segoe UI, Helvetica Neue, Arial, sans-serif",
           background: "#111b21",
           color: "#e9edef",
@@ -298,7 +357,7 @@ export default function MessagesPage() {
           </Link>
         </div>
 
-        <div style={{ padding: 10, background: "#111b21" }}>
+        <div style={{ padding: 10, background: "#111b21", display: "grid", gap: 8 }}>
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -314,6 +373,23 @@ export default function MessagesPage() {
               outline: "none",
             }}
           />
+          <button
+            type="button"
+            onClick={openBroadcast}
+            disabled={openingBroadcast}
+            style={{
+              border: "none",
+              borderRadius: 10,
+              padding: "12px 14px",
+              background: "linear-gradient(135deg,#005c4b,#00a884)",
+              color: "#fff",
+              fontWeight: 800,
+              cursor: "pointer",
+              textAlign: "left",
+            }}
+          >
+            {openingBroadcast ? "Ouverture…" : "📢 Annonce à tout le lectorat"}
+          </button>
         </div>
 
         <div style={{ flex: 1, overflowY: "auto" }}>
@@ -352,6 +428,7 @@ export default function MessagesPage() {
                 ? mediaLabel(resolveMessageMediaType(last) || "", last.mediaName)
                 : last.content || ""
               : "Aucun message";
+            const title = conv.isBroadcast ? conv.title || "Annonce Lectorat" : peer ? `${peer.prenom} ${peer.nom}` : "Discussion";
             return (
               <button
                 key={conv.id}
@@ -362,11 +439,29 @@ export default function MessagesPage() {
                   background: activeConvId === conv.id ? "#2a3942" : "transparent",
                 }}
               >
-                <Avatar src={peer?.photo} name={peer?.prenom || "U"} size={48} online={isOnline(peer?.lastSeenAt)} />
+                {conv.isBroadcast ? (
+                  <div
+                    style={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: "50%",
+                      background: "#00a884",
+                      color: "#111b21",
+                      display: "grid",
+                      placeItems: "center",
+                      fontSize: 22,
+                      flexShrink: 0,
+                    }}
+                  >
+                    📢
+                  </div>
+                ) : (
+                  <Avatar src={peer?.photo} name={peer?.prenom || "U"} size={48} online={isOnline(peer?.lastSeenAt)} />
+                )}
                 <div style={{ flex: 1, textAlign: "left", overflow: "hidden" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
                     <span style={{ fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                      {peer ? `${peer.prenom} ${peer.nom}` : "Discussion"}
+                      {title}
                     </span>
                     <span style={{ color: conv.unread ? "#00a884" : "#8696a0", fontSize: 12, flexShrink: 0 }}>
                       {last ? shortTime(last.createdAt) : ""}
@@ -447,13 +542,41 @@ export default function MessagesPage() {
               >
                 ←
               </button>
-              <Avatar src={activePeer?.photo} name={activePeer?.prenom || "U"} size={40} online={isOnline(activePeer?.lastSeenAt)} />
+              {activeConv?.isBroadcast ? (
+                <div
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: "50%",
+                    background: "#00a884",
+                    color: "#111b21",
+                    display: "grid",
+                    placeItems: "center",
+                    fontSize: 18,
+                    flexShrink: 0,
+                  }}
+                >
+                  📢
+                </div>
+              ) : (
+                <Avatar src={activePeer?.photo} name={activePeer?.prenom || "U"} size={40} online={isOnline(activePeer?.lastSeenAt)} />
+              )}
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontWeight: 700 }}>
-                  {activePeer ? `${activePeer.prenom} ${activePeer.nom}` : "Discussion"}
+                  {activeConv?.isBroadcast
+                    ? activeConv.title || "Annonce Lectorat"
+                    : activePeer
+                      ? `${activePeer.prenom} ${activePeer.nom}`
+                      : "Discussion"}
                 </div>
                 <div style={{ color: isOnline(activePeer?.lastSeenAt) ? "#00a884" : "#8696a0", fontSize: 12 }}>
-                  {activePeer ? presenceText(activePeer.lastSeenAt) : activeConvId ? "Discussion privée" : "Nouvelle discussion"}
+                  {activeConv?.isBroadcast
+                    ? "Message visible par tous les lecteurs"
+                    : activePeer
+                      ? presenceText(activePeer.lastSeenAt)
+                      : activeConvId
+                        ? "Discussion privée"
+                        : "Nouvelle discussion"}
                 </div>
               </div>
             </div>
@@ -560,7 +683,7 @@ export default function MessagesPage() {
                             </div>
                           ) : (
                             <>
-                              <MessageBody msg={msg} />
+                              <MessageBody msg={msg} mine={isMine} />
                               <div
                                 style={{
                                   display: "flex",
@@ -710,8 +833,10 @@ export default function MessagesPage() {
                 display: "flex",
                 alignItems: "flex-end",
                 gap: 8,
-                padding: "10px 12px",
-                background: "#202c33",
+                padding: `10px 12px calc(10px + env(safe-area-inset-bottom) + ${kbOffset}px)`,
+                background: "#1f2c34",
+                borderTop: "1px solid #222d34",
+                flexShrink: 0,
               }}
             >
               <button type="button" onClick={() => setShowEmoji((v) => !v)} style={roundIcon} title="Emojis">
@@ -812,25 +937,29 @@ export default function MessagesPage() {
       </section>
 
       <style>{`
+        .messages-page--chat { padding-bottom: 0 !important; }
+        body:has(.messages-page--chat) { padding-bottom: 0 !important; }
         .messages-shell { height: calc(100dvh - 58px); }
         @media (max-width: 859px) {
           .messages-page .app-navbar__search-row { display: none !important; }
           .messages-shell { height: calc(100dvh - 58px - 72px) !important; }
+          .messages-page--chat .messages-shell { height: 100dvh !important; }
           .wa-sidebar { width: 100% !important; min-width: 100% !important; max-width: none !important; flex: 1 !important; border-right: none !important; }
           .wa-chat { width: 100% !important; }
-          .wa-composer { padding: 8px 8px calc(8px + env(safe-area-inset-bottom)) !important; gap: 6px !important; }
-          .wa-composer textarea { font-size: 16px !important; } /* évite zoom iOS */
+          .wa-composer { gap: 6px !important; }
+          .wa-composer textarea { font-size: 16px !important; }
           .wa-bubble { max-width: 88% !important; }
           .wa-list-item { padding: 14px 14px !important; min-height: 72px; }
           .wa-empty { padding: 28px 18px !important; }
           .wa-empty img { width: 72px !important; height: 72px !important; }
           .wa-empty h2 { font-size: 20px !important; }
-          .wa-chat-header { padding: 10px 12px !important; }
+          .wa-chat-header { padding: 10px 12px !important; padding-top: calc(10px + env(safe-area-inset-top)) !important; }
         }
         @media (min-width: 860px) {
           .wa-sidebar { display: flex !important; width: 34% !important; min-width: 300px !important; }
           .wa-chat { display: flex !important; }
           .wa-back { display: none !important; }
+          .messages-page--chat .messages-shell { height: 100dvh !important; }
         }
       `}</style>
       </div>
@@ -838,7 +967,7 @@ export default function MessagesPage() {
   );
 }
 
-function MessageBody({ msg }: { msg: any }) {
+function MessageBody({ msg, mine = false }: { msg: any; mine?: boolean }) {
   const mediaType = resolveMessageMediaType(msg);
 
   if (mediaType === "IMAGE" && msg.mediaUrl) {
@@ -854,19 +983,17 @@ function MessageBody({ msg }: { msg: any }) {
   if (mediaType === "AUDIO" && msg.mediaUrl) {
     return (
       <div style={{ minWidth: 220 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, fontSize: 12, color: "rgba(233,237,239,0.75)" }}>
-          <span>🎤</span>
-          <span>Note vocale</span>
-        </div>
-        <audio src={msg.mediaUrl} controls preload="metadata" style={{ width: "100%", maxWidth: 280, marginBottom: msg.content ? 6 : 0 }} />
-        {msg.content && <div style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{msg.content}</div>}
+        <WaAudioPlayer src={msg.mediaUrl} mine={mine} />
+        {msg.content && <div style={{ whiteSpace: "pre-wrap", wordBreak: "break-word", marginTop: 6 }}>{msg.content}</div>}
       </div>
     );
   }
   if (mediaType === "VIDEO" && msg.mediaUrl) {
     return (
       <div>
-        <video src={msg.mediaUrl} controls playsInline style={{ maxWidth: "100%", borderRadius: 8, background: "#000", marginBottom: msg.content ? 6 : 0 }} />
+        <div style={{ marginBottom: msg.content ? 6 : 0 }}>
+          <WaVideoPlayer src={msg.mediaUrl} />
+        </div>
         {msg.content && <div style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{msg.content}</div>}
       </div>
     );

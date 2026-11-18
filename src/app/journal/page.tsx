@@ -882,10 +882,20 @@ export default function JournalPage() {
                   </div>
 
                   {activeCommentPostId === post.id && (
-                    <div style={{ padding: "12px 16px 20px", background: "#fff" }}>
+                    <div style={{ padding: "12px 16px calc(28px + env(safe-area-inset-bottom))", background: "#fff" }}>
                       {!replyToCommentId && (
-                        <form onSubmit={(e) => handleCommentSubmit(e, post.id)} style={{ marginBottom: 12 }}>
-                          <div style={{ display: "flex", gap: 8 }}>
+                        <form
+                          onSubmit={(e) => handleCommentSubmit(e, post.id)}
+                          style={{
+                            marginBottom: 12,
+                            position: "sticky",
+                            bottom: 72,
+                            zIndex: 40,
+                            background: "#fff",
+                            padding: "8px 0",
+                          }}
+                        >
+                          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                             <Avatar src={profilePhoto} name={session?.user?.name || "U"} size={32} />
                             <input
                               type="text"
@@ -894,12 +904,13 @@ export default function JournalPage() {
                               onChange={(e) => setCommentText(e.target.value)}
                               style={{
                                 flex: 1,
-                                padding: "8px 14px",
+                                padding: "10px 14px",
                                 borderRadius: 18,
-                                border: "none",
+                                border: "1px solid #e4e6eb",
                                 background: "#f0f2f5",
                                 outline: "none",
-                                fontSize: 14,
+                                fontSize: 16,
+                                minWidth: 0,
                               }}
                             />
                             <button
@@ -907,10 +918,14 @@ export default function JournalPage() {
                               disabled={!commentText.trim()}
                               style={{
                                 border: "none",
-                                background: "transparent",
-                                color: commentText.trim() ? "#1877f2" : "#bcc0c4",
-                                fontWeight: 700,
+                                background: commentText.trim() ? "#1877f2" : "#e4e6eb",
+                                color: commentText.trim() ? "#fff" : "#65676b",
+                                fontWeight: 800,
                                 cursor: commentText.trim() ? "pointer" : "default",
+                                borderRadius: 16,
+                                padding: "10px 14px",
+                                flexShrink: 0,
+                                minHeight: 44,
                               }}
                             >
                               Publier
@@ -1111,7 +1126,7 @@ function InlineReplyForm({
           Annuler
         </button>
       </div>
-      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+      <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
         <Avatar src={profilePhoto} name={userName} size={28} />
         <input
           id={inputId}
@@ -1122,12 +1137,13 @@ function InlineReplyForm({
           autoFocus
           style={{
             flex: 1,
-            padding: "8px 14px",
+            minWidth: 140,
+            padding: "10px 14px",
             borderRadius: 18,
             border: "1px solid #cfe2ff",
             background: "#f0f7ff",
             outline: "none",
-            fontSize: 14,
+            fontSize: 16,
           }}
         />
         <button
@@ -1137,11 +1153,13 @@ function InlineReplyForm({
             border: "none",
             background: commentText.trim() ? "#1877f2" : "#e4e6eb",
             color: commentText.trim() ? "#fff" : "#bcc0c4",
-            fontWeight: 700,
+            fontWeight: 800,
             cursor: commentText.trim() ? "pointer" : "default",
             borderRadius: 16,
-            padding: "8px 12px",
-            fontSize: 13,
+            padding: "10px 14px",
+            fontSize: 14,
+            minHeight: 44,
+            flexShrink: 0,
           }}
         >
           Répondre

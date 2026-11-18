@@ -16,6 +16,8 @@ type AppNavbarProps = {
   onProfilePhotoClick?: () => void;
   active?: "journal" | "messages" | "notifications" | "calendrier" | "dashboard" | "lecture" | "profil" | "live";
   title?: string;
+  /** Cache header + barre du bas (ex. conversation Messages ouverte) */
+  hideChrome?: boolean;
 };
 
 export default function AppNavbar({
@@ -29,6 +31,7 @@ export default function AppNavbar({
   onProfilePhotoClick,
   active = "journal",
   title = "LECTORAT",
+  hideChrome = false,
 }: AppNavbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -46,6 +49,10 @@ export default function AppNavbar({
       document.body.style.overflow = "";
     };
   }, [menuOpen]);
+
+  if (hideChrome) {
+    return <PresenceHeartbeat />;
+  }
 
   return (
     <>

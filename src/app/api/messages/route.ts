@@ -84,7 +84,43 @@ export async function POST(req: Request) {
       mediaName = uploaded.name;
     }
 
+    const wantBroadcast = String(formData.get("broadcast") || "") === "1";
     let convId = conversationId;
+
+    if (wantBroadcast && !convId) {
+      let broadcast = await prisma.conversation.findFirst({ where: { isBroadcast: true } });
+      const members = await prisma.user.findMany({
+        where: { isActive: true },
+        select: { id: true },
+      });
+      if (!broadcast) {
+        broadcast = await prisma.conversation.create({
+          data: {
+            title: "Annonce Lectorat",
+            isBroadcast: true,
+            participants: { create: members.map((u) => ({ userId: u.id })) },
+          },
+        });
+      } else {
+        const existingIds = new Set(
+          (
+            await prisma.conversationParticipant.findMany({
+              where: { conversationId: broadcast.id },
+              select: { userId: true },
+            })
+          ).map((p) => p.userId)
+        );
+        const missing = members.filter((u) => !existingIds.has(u.id));
+        if (missing.length) {
+          await prisma.conversationParticipant.createMany({
+            data: missing.map((u) => ({ conversationId: broadcast!.id, userId: u.id })),
+            skipDuplicates: true,
+          });
+        }
+      }
+      convId = broadcast.id;
+    }
+
     if (!convId) {
       if (!receiverId) {
         return NextResponse.json({ message: "Destinataire requis" }, { status: 400 });
@@ -92,6 +128,7 @@ export async function POST(req: Request) {
 
       const existing = await prisma.conversation.findFirst({
         where: {
+          isBroadcast: false,
           AND: [
             { participants: { some: { userId: senderId } } },
             { participants: { some: { userId: receiverId } } },

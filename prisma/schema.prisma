@@ -177,9 +177,11 @@ model LiturgicalEvent {
 }
 
 model Conversation {
-  id        Int       @id @default(autoincrement())
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id          Int       @id @default(autoincrement())
+  title       String?
+  isBroadcast Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   participants ConversationParticipant[]
   messages      Message[]

@@ -46,6 +46,37 @@ export async function POST(req: Request) {
   }
 }
 
+export async function PUT(req: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+    if ((session?.user as any)?.role !== "ADMIN") {
+      return NextResponse.json({ message: "Non autorisé" }, { status: 403 });
+    }
+
+    const body = await req.json();
+    const id = parseInt(body.id, 10);
+    if (Number.isNaN(id)) return NextResponse.json({ message: "ID invalide" }, { status: 400 });
+
+    const title = String(body.title || "").trim();
+    if (!title) return NextResponse.json({ message: "Titre requis" }, { status: 400 });
+
+    const event = await prisma.liturgicalEvent.update({
+      where: { id },
+      data: {
+        title,
+        ...(body.date ? { date: new Date(body.date) } : {}),
+        ...(body.color !== undefined ? { color: body.color || null } : {}),
+        ...(body.note !== undefined ? { note: body.note || null } : {}),
+      },
+    });
+
+    return NextResponse.json(event);
+  } catch (error) {
+    console.error("Erreur PUT liturgical:", error);
+    return NextResponse.json({ message: "Erreur serveur" }, { status: 500 });
+  }
+}
+
 export async function DELETE(req: Request) {
   try {
     const session = await getServerSession(authOptions);
