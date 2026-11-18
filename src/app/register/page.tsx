@@ -2,10 +2,18 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import BrandLogo from "@/components/BrandLogo";
 
 export default function RegisterPage() {
   const router = useRouter();
-  const [form, setForm] = useState({ nom: "", prenom: "", email: "", password: "", telephone: "", dateNaissance: "" });
+  const [form, setForm] = useState({
+    nom: "",
+    prenom: "",
+    email: "",
+    password: "",
+    telephone: "",
+    dateNaissance: "",
+  });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -13,86 +21,88 @@ export default function RegisterPage() {
     e.preventDefault();
     setError("");
     setLoading(true);
-
     try {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
-
       if (!res.ok) {
-        // On essaie de lire l'erreur proprement
-        try {
-          const data = await res.json();
-          setError(data.message || "Erreur lors de l'inscription");
-        } catch(err) {
-          setError("Erreur 404 : L'API d'inscription est introuvable.");
-        }
-        setLoading(false); // On arrête le bouton de tourner !
+        const data = await res.json().catch(() => ({}));
+        setError(data.message || "Erreur lors de l'inscription");
+        setLoading(false);
         return;
       }
-      
       router.push("/login?registered=true");
-    } catch (err) {
+    } catch {
       setError("Impossible de contacter le serveur.");
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#f0f2f5", padding: "20px" }}>
-      <div style={{ width: "100%", maxWidth: "600px", background: "white", borderRadius: "12px", boxShadow: "0 4px 12px rgba(0,0,0,0.08)", padding: "30px 40px" }}>
-        
-        <div style={{ textAlign: "center", borderBottom: "1px solid #e4e6eb", paddingBottom: "20px", marginBottom: "20px" }}>
-          <h1 style={{ fontSize: "32px", color: "#1c1e21", margin: "0 0 5px", fontWeight: "bold" }}>S'inscrire</h1>
-          <p style={{ color: "#606770", margin: 0, fontSize: "15px" }}>C'est rapide et facile. Rejoignez NODAFA.</p>
+    <div style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 20 }}>
+      <div className="nodafa-card nodafa-rise" style={{ width: "min(560px, 100%)", padding: 28 }}>
+        <div style={{ display: "grid", justifyItems: "center", marginBottom: 20, gap: 10 }}>
+          <BrandLogo href="/" size={78} showText={false} />
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontFamily: "var(--font-display)", fontSize: 28 }}>Rejoindre le Lectorat</div>
+            <p style={{ margin: "6px 0 0", color: "var(--muted)" }}>Paroisse Notre-Dame de Fatima – Gombe</p>
+          </div>
         </div>
 
-        {error && <div style={{ background: "#ffebe8", color: "#b94a48", padding: "10px", borderRadius: "5px", marginBottom: "15px", fontSize: "14px", border: "1px solid #dd3c10", fontWeight: "bold" }}>🚨 {error}</div>}
-
-        <form onSubmit={handleSubmit}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "12px" }}>
-            <input type="text" placeholder="Prénom" required onChange={e => setForm({...form, prenom: e.target.value})} style={inputStyle} />
-            <input type="text" placeholder="Nom de famille" required onChange={e => setForm({...form, nom: e.target.value})} style={inputStyle} />
+        {error && (
+          <div style={{ background: "#fef2f2", color: "#b91c1c", padding: 12, borderRadius: 12, marginBottom: 14 }}>
+            {error}
           </div>
-          
-          <div style={{ marginBottom: "12px" }}>
-            <input type="email" placeholder="E-mail" required onChange={e => setForm({...form, email: e.target.value})} style={inputStyle} />
-          </div>
+        )}
 
-          <div style={{ marginBottom: "12px" }}>
-            <input type="password" placeholder="Nouveau mot de passe" required onChange={e => setForm({...form, password: e.target.value})} style={inputStyle} />
+        <form onSubmit={handleSubmit} style={{ display: "grid", gap: 12 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <input placeholder="Prénom" required style={fieldStyle} onChange={(e) => setForm({ ...form, prenom: e.target.value })} />
+            <input placeholder="Nom" required style={fieldStyle} onChange={(e) => setForm({ ...form, nom: e.target.value })} />
           </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "25px" }}>
+          <input type="email" placeholder="E-mail" required style={fieldStyle} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+          <input type="password" placeholder="Mot de passe" required style={fieldStyle} onChange={(e) => setForm({ ...form, password: e.target.value })} />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <div>
               <label style={labelStyle}>Date de naissance *</label>
-              <input type="date" required onChange={e => setForm({...form, dateNaissance: e.target.value})} style={inputStyle} />
+              <input type="date" required style={fieldStyle} onChange={(e) => setForm({ ...form, dateNaissance: e.target.value })} />
             </div>
             <div>
-              <label style={labelStyle}>Numéro de téléphone</label>
-              <input type="tel" placeholder="Optionnel" onChange={e => setForm({...form, telephone: e.target.value})} style={inputStyle} />
+              <label style={labelStyle}>Téléphone</label>
+              <input type="tel" placeholder="Optionnel" style={fieldStyle} onChange={(e) => setForm({ ...form, telephone: e.target.value })} />
             </div>
           </div>
-
-          <div style={{ textAlign: "center" }}>
-            <button type="submit" disabled={loading} style={{ width: "200px", padding: "10px", background: "#00a400", color: "white", border: "none", borderRadius: "6px", fontSize: "18px", fontWeight: "bold", cursor: "pointer", opacity: loading ? 0.7 : 1 }}>
-              {loading ? "Chargement..." : "S'inscrire"}
-            </button>
-          </div>
+          <button type="submit" className="nodafa-btn nodafa-btn-primary" disabled={loading} style={{ width: "100%", marginTop: 6 }}>
+            {loading ? "Création..." : "Créer mon compte"}
+          </button>
         </form>
 
-        <div style={{ textAlign: "center", marginTop: "20px" }}>
-          <Link href="/login" style={{ color: "#1877f2", fontSize: "15px", textDecoration: "none", fontWeight: "500" }}>
-            Vous avez déjà un compte ?
+        <p style={{ textAlign: "center", marginTop: 18, color: "var(--muted)" }}>
+          Déjà inscrit ?{" "}
+          <Link href="/login" style={{ color: "var(--brand)", fontWeight: 700, textDecoration: "none" }}>
+            Se connecter
           </Link>
-        </div>
-
+        </p>
       </div>
     </div>
   );
 }
 
-const inputStyle = { width: "100%", padding: "12px", border: "1px solid #ccd0d5", borderRadius: "5px", fontSize: "15px", outline: "none", boxSizing: "border-box" as const, background: "#f5f6f7" };
-const labelStyle = { display: "block", fontSize: "12px", color: "#606770", marginBottom: "5px", fontWeight: "600" };
+const fieldStyle: React.CSSProperties = {
+  width: "100%",
+  padding: "12px 14px",
+  border: "1px solid var(--line)",
+  borderRadius: 14,
+  background: "#f8fafc",
+  outline: "none",
+};
+
+const labelStyle: React.CSSProperties = {
+  display: "block",
+  fontSize: 12,
+  color: "var(--muted)",
+  marginBottom: 6,
+  fontWeight: 700,
+};

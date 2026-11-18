@@ -1,0 +1,12 @@
+{
+  "crons": [
+    {
+      "path": "/api/check-birthdays",
+      "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/lectures/sync",
+      "schedule": "15 5 * * *"
+    }
+  ]
+}

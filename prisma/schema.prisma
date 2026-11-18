@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
 model User {
@@ -16,14 +17,19 @@ model User {
   telephone       String?
   dateNaissance   DateTime?
   photo           String?
+  coverPhoto      String?
+  bio             String?
   role            String    @default("LECTEUR")
   isActive        Boolean   @default(true)
+  lastSeenAt      DateTime?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
   posts           Post[]
   comments        Comment[]
   likes           Like[]
+  liveLikes       LiveLike[]
+  liveComments    LiveComment[]
   events          Event[]   @relation("EventAuthor")
   conversations   ConversationParticipant[]
   messages        Message[]
@@ -36,6 +42,9 @@ model Post {
   id          Int       @id @default(autoincrement())
   content     String
   image       String?
+  mediaUrl    String?
+  mediaType   String?
+  mediaName   String?
   sharesCount Int       @default(0)
   authorId    Int
   author      User      @relation(fields: [authorId], references: [id])
@@ -66,8 +75,11 @@ model Comment {
   isEdited  Boolean  @default(false)
   postId    Int
   userId    Int
+  parentId  Int?
   post      Post     @relation(fields: [postId], references: [id])
   user      User     @relation(fields: [userId], references: [id])
+  parent    Comment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[] @relation("CommentReplies")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -84,6 +96,11 @@ model DailyReading {
   gospel           String
   liturgicalColor  String?
   commentary       String?
+  image            String?
+  source           String?  @default("manuel")
+  liturgicalYear   String?  // A | B | C
+  liturgicalSeason String?  // Temps Ordinaire, Avent, Carême...
+  isSunday         Boolean  @default(false)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
@@ -108,12 +125,43 @@ model Event {
 model Live {
   id          Int      @id @default(autoincrement())
   title       String
-  youtubeUrl  String
+  eventType   String?  // fete | excursion | amitie | messe | autre
+  description String?
+  roomName    String?
+  youtubeUrl  String?  // legacy
+  replayUrl   String?  // rediffusion enregistrée
   scheduledAt DateTime
   isActive    Boolean  @default(false)
   createdAt   DateTime @default(now())
 
+  likes       LiveLike[]
+  comments    LiveComment[]
+
   @@map("lives")
+}
+
+model LiveLike {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  liveId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  live      Live     @relation(fields: [liveId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, liveId])
+  @@map("live_likes")
+}
+
+model LiveComment {
+  id        Int      @id @default(autoincrement())
+  content   String
+  userId    Int
+  liveId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  live      Live     @relation(fields: [liveId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@map("live_comments")
 }
 
 model LiturgicalEvent {
@@ -153,11 +201,19 @@ model ConversationParticipant {
 model Message {
   id             Int          @id @default(autoincrement())
   content        String
+  mediaUrl       String?
+  mediaType      String?
+  mediaName      String?
+  isEdited       Boolean      @default(false)
+  replyToId      Int?
+  replyTo        Message?     @relation("MessageReplies", fields: [replyToId], references: [id])
+  replies        Message[]    @relation("MessageReplies")
   senderId       Int
   conversationId Int
   sender         User         @relation(fields: [senderId], references: [id])
   conversation   Conversation @relation(fields: [conversationId], references: [id])
   createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
   @@map("messages")
 }
@@ -167,10 +223,13 @@ model Notification {
   title     String
   message   String
   url       String?
+  kind      String?
+  dedupeKey String?
   isRead    Boolean  @default(false)
   userId    Int
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
 
+  @@unique([userId, dedupeKey])
   @@map("notifications")
 }

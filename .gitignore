@@ -1,5 +1,10 @@
 node_modules
 .next
 .env
+.env.local
 *.db
 package-lock.json
+public/uploads/*
+!public/uploads/.gitkeep
+.vercel
+.env*

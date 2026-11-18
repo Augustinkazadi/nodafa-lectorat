@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/route";
-
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/prisma";
 
 export async function GET(
   req: Request,
@@ -16,7 +14,9 @@ export async function GET(
 
     const params = await props.params;
     const conversationId = parseInt(params.id);
-    if (isNaN(conversationId)) return NextResponse.json({ message: "ID invalide" }, { status: 400 });
+    if (isNaN(conversationId)) {
+      return NextResponse.json({ message: "ID invalide" }, { status: 400 });
+    }
 
     const participant = await prisma.conversationParticipant.findFirst({
       where: { conversationId, userId },
@@ -30,11 +30,40 @@ export async function GET(
 
     const messages = await prisma.message.findMany({
       where: { conversationId },
-      include: { sender: { select: { nom: true, prenom: true, photo: true } } },
+      include: {
+        sender: { select: { id: true, nom: true, prenom: true, photo: true } },
+        replyTo: {
+          select: {
+            id: true,
+            content: true,
+            mediaType: true,
+            mediaName: true,
+            sender: { select: { prenom: true, nom: true } },
+          },
+        },
+      },
       orderBy: { createdAt: "asc" },
     });
 
-    return NextResponse.json(messages);
+    const others = await prisma.conversationParticipant.findMany({
+      where: { conversationId, userId: { not: userId } },
+      select: { lastReadAt: true },
+    });
+    const peerLastRead = others
+      .map((o) => o.lastReadAt)
+      .filter(Boolean)
+      .sort((a, b) => (b as Date).getTime() - (a as Date).getTime())[0] as Date | undefined;
+
+    const enriched = messages.map((msg) => {
+      let receipt: "SENT" | "DELIVERED" | "READ" = "SENT";
+      if (msg.senderId === userId) {
+        if (peerLastRead && peerLastRead >= msg.createdAt) receipt = "READ";
+        else receipt = "DELIVERED";
+      }
+      return { ...msg, receipt };
+    });
+
+    return NextResponse.json(enriched);
   } catch (error) {
     console.error(error);
     return NextResponse.json({ message: "Erreur serveur" }, { status: 500 });

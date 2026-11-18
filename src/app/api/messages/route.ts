@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
-
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/prisma";
+import { saveUploadedFile } from "@/lib/upload";
 
 export async function GET() {
   try {
@@ -15,14 +14,38 @@ export async function GET() {
       where: { participants: { some: { userId } } },
       include: {
         participants: {
-          include: { user: { select: { id: true, nom: true, prenom: true, photo: true } } },
+          include: {
+            user: { select: { id: true, nom: true, prenom: true, photo: true, lastSeenAt: true } },
+          },
         },
-        messages: { orderBy: { createdAt: "desc" }, take: 1 },
+        messages: {
+          orderBy: { createdAt: "desc" },
+          take: 1,
+          select: {
+            id: true,
+            content: true,
+            mediaType: true,
+            mediaName: true,
+            senderId: true,
+            createdAt: true,
+          },
+        },
       },
       orderBy: { updatedAt: "desc" },
     });
 
-    return NextResponse.json(conversations);
+    const withUnread = conversations.map((conv) => {
+      const me = conv.participants.find((p) => p.userId === userId);
+      const lastReadAt = me?.lastReadAt ? new Date(me.lastReadAt) : new Date(0);
+      const lastMsg = conv.messages[0];
+      const unread =
+        lastMsg && lastMsg.senderId !== userId && new Date(lastMsg.createdAt) > lastReadAt
+          ? 1
+          : 0;
+      return { ...conv, unread };
+    });
+
+    return NextResponse.json(withUnread);
   } catch (error) {
     console.error(error);
     return NextResponse.json({ message: "Erreur serveur" }, { status: 500 });
@@ -36,32 +59,36 @@ export async function POST(req: Request) {
     if (!senderId) return NextResponse.json({ message: "Non autorisé" }, { status: 401 });
 
     const formData = await req.formData();
-    const receiverId = parseInt(formData.get("receiverId") as string);
-    const content = (formData.get("content") as string) || "";
+    const receiverRaw = formData.get("receiverId") as string;
+    const receiverId = receiverRaw ? parseInt(receiverRaw) : NaN;
+    const content = ((formData.get("content") as string) || "").trim();
     const conversationId = formData.get("conversationId")
       ? parseInt(formData.get("conversationId") as string)
       : null;
+    const replyToId = formData.get("replyToId")
+      ? parseInt(formData.get("replyToId") as string)
+      : null;
     const file = formData.get("file") as File | null;
+    let mediaUrl = (formData.get("mediaUrl") as string) || null;
+    let mediaType = (formData.get("mediaType") as string) || null;
+    let mediaName = (formData.get("mediaName") as string) || null;
 
-    if (!content.trim() && !file) {
+    if (!content && !(file && file.size > 0) && !mediaUrl) {
       return NextResponse.json({ message: "Message ou fichier requis" }, { status: 400 });
     }
 
-    let fileBase64 = "";
-    if (file) {
-      const bytes = await file.arrayBuffer();
-      const buffer = Buffer.from(bytes);
-      fileBase64 = `data:${file.type};base64,${buffer.toString("base64")}`;
-    }
-
-    let finalContent = content;
-    if (fileBase64) {
-      finalContent += `\n<img src="${fileBase64}" />`;
+    if (file && file.size > 0 && !mediaUrl) {
+      const uploaded = await saveUploadedFile(file, ["IMAGE", "VIDEO", "PDF", "AUDIO"]);
+      mediaUrl = uploaded.url;
+      mediaType = uploaded.mediaType;
+      mediaName = uploaded.name;
     }
 
     let convId = conversationId;
     if (!convId) {
-      if (!receiverId) return NextResponse.json({ message: "Destinataire requis" }, { status: 400 });
+      if (!receiverId) {
+        return NextResponse.json({ message: "Destinataire requis" }, { status: 400 });
+      }
 
       const existing = await prisma.conversation.findFirst({
         where: {
@@ -70,9 +97,10 @@ export async function POST(req: Request) {
             { participants: { some: { userId: receiverId } } },
           ],
         },
+        include: { participants: true },
       });
 
-      if (existing) {
+      if (existing && existing.participants.length === 2) {
         convId = existing.id;
       } else {
         const newConv = await prisma.conversation.create({
@@ -86,11 +114,27 @@ export async function POST(req: Request) {
       }
     }
 
-    await prisma.message.create({
+    const message = await prisma.message.create({
       data: {
-        content: finalContent,
+        content: content || "",
+        mediaUrl,
+        mediaType,
+        mediaName,
+        replyToId: replyToId || undefined,
         senderId,
         conversationId: convId,
+      },
+      include: {
+        sender: { select: { id: true, nom: true, prenom: true, photo: true } },
+        replyTo: {
+          select: {
+            id: true,
+            content: true,
+            mediaType: true,
+            mediaName: true,
+            sender: { select: { prenom: true, nom: true } },
+          },
+        },
       },
     });
 
@@ -104,9 +148,9 @@ export async function POST(req: Request) {
       data: { lastReadAt: new Date() },
     });
 
-    return NextResponse.json({ message: "Message envoyé", conversationId: convId });
-  } catch (error) {
+    return NextResponse.json({ ...message, conversationId: convId });
+  } catch (error: any) {
     console.error(error);
-    return NextResponse.json({ message: "Erreur serveur" }, { status: 500 });
+    return NextResponse.json({ message: error?.message || "Erreur serveur" }, { status: 500 });
   }
 }

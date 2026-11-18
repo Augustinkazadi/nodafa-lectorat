@@ -1,45 +1,104 @@
 import Link from "next/link";
+import BrandLogo from "@/components/BrandLogo";
 
 export default function HomePage() {
   return (
-    <main style={{ minHeight: "100vh", background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)", color: "white", fontFamily: "Arial, sans-serif" }}>
-      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "20px 60px", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <div style={{ width: "45px", height: "45px", borderRadius: "50%", background: "linear-gradient(135deg, #667eea, #764ba2)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "20px" }}>N</div>
-          <div>
-            <h2 style={{ margin: 0 }}>NODAFA</h2>
-            <p style={{ margin: 0, fontSize: "12px", color: "#cbd5e1" }}>Lectorat Notre Dame de Fatima</p>
-          </div>
-        </div>
-        <nav style={{ display: "flex", gap: "20px" }}>
-          <Link href="/login" style={{ color: "white", textDecoration: "none", padding: "10px 18px" }}>Connexion</Link>
-          <Link href="/register" style={{ background: "linear-gradient(135deg, #667eea, #764ba2)", padding: "10px 18px", borderRadius: "10px", color: "white", textDecoration: "none" }}>Inscription</Link>
-        </nav>
-      </header>
+    <main style={{ minHeight: "100vh", position: "relative", overflow: "hidden" }}>
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background:
+            "linear-gradient(145deg, rgba(15,23,42,0.88), rgba(15,60,120,0.55)), url('https://images.unsplash.com/photo-1438232032760-f1d1f54b8b2b?auto=format&fit=crop&w=1800&q=80') center/cover",
+        }}
+      />
 
-      <section style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "80px 60px", flexWrap: "wrap", gap: "40px" }}>
-        <div style={{ maxWidth: "600px" }}>
-          <h1 style={{ fontSize: "60px", lineHeight: "1.1", marginBottom: "20px" }}>
-            Plateforme sociale du <span style={{ color: "#a5b4fc" }}>lectorat NODAFA</span>
-          </h1>
-          <p style={{ fontSize: "18px", color: "#cbd5e1", lineHeight: "1.7", marginBottom: "35px" }}>
-            Partagez vos moments, suivez les lectures du jour et interagissez avec la communauté de la paroisse.
-          </p>
-          <div style={{ display: "flex", gap: "15px" }}>
-            {/* LE BOUTON COMMENCER MÈNE MAINTENANT AU JOURNAL */}
-            <Link href="/journal" style={{ background: "#1877f2", padding: "14px 24px", borderRadius: "8px", color: "white", textDecoration: "none", fontWeight: "bold", fontSize: "18px" }}>Commencer</Link>
-            <Link href="/dashboard" style={{ border: "1px solid rgba(255,255,255,0.2)", padding: "14px 24px", borderRadius: "8px", color: "white", textDecoration: "none", fontSize: "18px" }}>Dashboard (Admins)</Link>
-          </div>
-        </div>
+      <div style={{ position: "relative", zIndex: 1, color: "white", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+        <header
+          className="nodafa-rise"
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            padding: "20px clamp(16px, 5vw, 56px)",
+            gap: 12,
+            flexWrap: "wrap",
+          }}
+        >
+          <BrandLogo size={48} textColor="white" compact subtitle="Kinshasa" />
+          <nav className="home-header-actions">
+            <Link
+              href="/login"
+              className="nodafa-btn nodafa-btn-ghost"
+              style={{ color: "white", background: "rgba(255,255,255,0.08)", borderColor: "rgba(255,255,255,0.2)", textDecoration: "none" }}
+            >
+              Connexion
+            </Link>
+            <Link href="/register" className="nodafa-btn nodafa-btn-primary" style={{ textDecoration: "none" }}>
+              Rejoindre
+            </Link>
+          </nav>
+        </header>
 
-        <div style={{ width: "380px", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "16px", padding: "30px" }}>
-          <h3 style={{ marginBottom: "25px" }}>Au programme</h3>
-          <div style={{ padding: "14px", background: "rgba(255,255,255,0.05)", borderRadius: "8px", marginBottom: "12px" }}>📰 Journal Communautaire</div>
-          <div style={{ padding: "14px", background: "rgba(255,255,255,0.05)", borderRadius: "8px", marginBottom: "12px" }}>👍 Likes & Commentaires</div>
-          <div style={{ padding: "14px", background: "rgba(255,255,255,0.05)", borderRadius: "8px", marginBottom: "12px" }}>📖 Lectures du dimanche</div>
-          <div style={{ padding: "14px", background: "rgba(255,255,255,0.05)", borderRadius: "8px", marginBottom: "12px" }}>🎥 Live des célébrations</div>
-        </div>
-      </section>
+        <section
+          style={{
+            flex: 1,
+            display: "grid",
+            placeItems: "center",
+            padding: "28px clamp(16px, 5vw, 56px) 64px",
+            textAlign: "center",
+          }}
+        >
+          <div style={{ maxWidth: 820 }}>
+            <img
+              src="/logo-lectorat.jpg"
+              alt="Logo Lectorat"
+              className="nodafa-rise"
+              style={{
+                width: "min(220px, 46vw)",
+                height: "min(220px, 46vw)",
+                borderRadius: "50%",
+                objectFit: "cover",
+                margin: "0 auto 22px",
+                display: "block",
+                boxShadow: "0 18px 50px rgba(0,0,0,0.35)",
+                border: "3px solid rgba(255,255,255,0.35)",
+                background: "#fff",
+              }}
+            />
+            <p className="nodafa-rise" style={{ letterSpacing: "0.18em", textTransform: "uppercase", fontSize: 12, opacity: 0.85, marginBottom: 14 }}>
+              Archidiocèse de Kinshasa
+            </p>
+            <h1
+              className="nodafa-rise"
+              style={{
+                fontFamily: "var(--font-display)",
+                fontSize: "clamp(40px, 7vw, 72px)",
+                lineHeight: 1.02,
+                margin: "0 0 12px",
+                fontWeight: 700,
+              }}
+            >
+              LECTORAT
+            </h1>
+            <p className="nodafa-rise-delay" style={{ fontSize: "clamp(15px, 2.2vw, 19px)", lineHeight: 1.6, opacity: 0.92, margin: "0 auto 30px", maxWidth: 620 }}>
+              Paroisse Notre-Dame de Fatima – Gombe. Journal communautaire, messagerie et vie du lectorat, réunis sur une même plateforme.
+            </p>
+            <div className="nodafa-rise-delay" style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
+              <Link href="/journal" className="nodafa-btn nodafa-btn-primary" style={{ textDecoration: "none", minWidth: 160 }}>
+                Ouvrir le journal
+              </Link>
+              <Link
+                href="/messages"
+                className="nodafa-btn nodafa-btn-ghost"
+                style={{ textDecoration: "none", color: "white", background: "rgba(255,255,255,0.1)", borderColor: "rgba(255,255,255,0.22)", minWidth: 160 }}
+              >
+                Messagerie
+              </Link>
+            </div>
+          </div>
+        </section>
+      </div>
     </main>
   );
 }

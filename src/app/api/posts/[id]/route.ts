@@ -1,9 +1,33 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/route";
+import { prisma } from "@/lib/prisma";
 
-const prisma = new PrismaClient();
+export async function PUT(req: Request, props: { params: Promise<{ id: string }> }) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!(session?.user as any)?.id) {
+      return NextResponse.json({ message: "Non autorisé" }, { status: 401 });
+    }
+
+    const params = await props.params;
+    const postId = parseInt(params.id);
+    const body = await req.json().catch(() => ({}));
+
+    if (body.share) {
+      const post = await prisma.post.update({
+        where: { id: postId },
+        data: { sharesCount: { increment: 1 } },
+      });
+      return NextResponse.json(post);
+    }
+
+    return NextResponse.json({ message: "Action invalide" }, { status: 400 });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ message: "Erreur serveur" }, { status: 500 });
+  }
+}
 
 export async function DELETE(req: Request, props: { params: Promise<{ id: string }> }) {
   try {

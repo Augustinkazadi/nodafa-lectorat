@@ -60,9 +60,10 @@ export async function POST(
     if (targetPost.authorId !== userId) {
       await prisma.notification.create({
         data: {
-          title: "Nouveau like",
+          title: "Nouveau J'aime",
           message: `${userSession.name || "Quelqu'un"} a aimé votre publication.`,
-          url: "/journal",
+          url: `/journal?post=${postId}`,
+          kind: "POST_LIKE",
           userId: targetPost.authorId,
         },
       });

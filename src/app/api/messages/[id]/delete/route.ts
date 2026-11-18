@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../../auth/[...nextauth]/route";
-
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/prisma";
 
 export async function DELETE(
   req: Request,
@@ -19,7 +17,15 @@ export async function DELETE(
 
     const message = await prisma.message.findUnique({ where: { id: msgId } });
     if (!message) return NextResponse.json({ message: "Message introuvable" }, { status: 404 });
-    if (message.senderId !== userId) return NextResponse.json({ message: "Vous ne pouvez supprimer que vos messages" }, { status: 403 });
+    if (message.senderId !== userId) {
+      return NextResponse.json({ message: "Vous ne pouvez supprimer que vos messages" }, { status: 403 });
+    }
+
+    // Détache les réponses pour éviter les contraintes FK
+    await prisma.message.updateMany({
+      where: { replyToId: msgId },
+      data: { replyToId: null },
+    });
 
     await prisma.message.delete({ where: { id: msgId } });
     return NextResponse.json({ message: "Message supprimé" });
