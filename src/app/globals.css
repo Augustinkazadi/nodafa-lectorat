@@ -98,18 +98,23 @@ html[data-theme="dark"] .nodafa-card {
 html[data-theme="dark"] .app-navbar,
 html[data-theme="dark"] .app-bottom-nav {
   background: rgba(15, 23, 42, 0.96);
-  border-color: #1f2937;
-  color: #e5e7eb;
+  border-color: var(--line);
+  color: var(--ink);
 }
 
 html[data-theme="dark"] .app-bottom-nav a,
 html[data-theme="dark"] .app-bottom-nav button {
-  color: #94a3b8;
+  color: var(--muted);
+}
+
+html[data-theme="dark"] .app-bottom-nav .is-active {
+  color: var(--brand);
+  background: var(--brand-soft);
 }
 
 html[data-theme="dark"] .app-menu-panel {
-  background: #111827;
-  color: #e5e7eb;
+  background: var(--bg-elevated);
+  color: var(--ink);
 }
 
 * {
@@ -143,6 +148,22 @@ input,
 textarea,
 select {
   font: inherit;
+  color: inherit;
+}
+
+input,
+textarea,
+select {
+  color: var(--ink);
+  background: var(--bg-elevated);
+  border-color: var(--line);
+  caret-color: var(--ink);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--muted);
+  opacity: 1;
 }
 
 .nodafa-shell {
@@ -151,9 +172,10 @@ select {
 
 .nodafa-card {
   background: var(--bg-elevated);
-  border: 1px solid rgba(226, 232, 240, 0.9);
+  border: 1px solid var(--line);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
+  color: var(--ink);
 }
 
 .nodafa-btn {
@@ -209,9 +231,10 @@ select {
   position: sticky;
   top: 0;
   z-index: 120;
-  background: rgba(255, 255, 255, 0.94);
+  background: color-mix(in srgb, var(--bg-elevated) 94%, transparent);
+  color: var(--ink);
   backdrop-filter: blur(14px);
-  border-bottom: 1px solid rgba(226, 232, 240, 0.95);
+  border-bottom: 1px solid var(--line);
 }
 
 .app-navbar__top {
@@ -264,12 +287,17 @@ select {
 
 .app-navbar__search {
   width: 100%;
-  border: none;
+  border: 1px solid var(--line);
   outline: none;
-  background: #f1f5f9;
+  background: var(--bg-soft);
+  color: var(--ink);
   border-radius: 999px;
   padding: 10px 14px;
   font-size: 14px;
+}
+
+.app-navbar__search::placeholder {
+  color: var(--muted);
 }
 
 .app-navbar__search--desktop {
@@ -304,12 +332,12 @@ select {
   height: 42px;
   border: none;
   border-radius: 12px;
-  background: #f1f5f9;
+  background: var(--bg-soft);
   display: none;
   align-items: center;
   justify-content: center;
   text-decoration: none;
-  color: #0f172a;
+  color: var(--ink);
   font-size: 18px;
   cursor: pointer;
 }
@@ -342,7 +370,7 @@ select {
 
 .app-nav-link {
   text-decoration: none;
-  color: #0f172a;
+  color: var(--ink);
   font-weight: 700;
   font-size: 14px;
   padding: 8px 10px;
@@ -351,7 +379,8 @@ select {
 
 .app-nav-link.is-active,
 .app-nav-link:hover {
-  background: #f1f5f9;
+  background: var(--bg-soft);
+  color: var(--ink);
 }
 
 .app-nav-avatar {
@@ -377,7 +406,8 @@ select {
 
 .app-nav-logout {
   border: none;
-  background: #e2e8f0;
+  background: var(--bg-soft);
+  color: var(--ink);
   padding: 8px 12px;
   border-radius: 10px;
   font-weight: 700;
@@ -394,8 +424,9 @@ select {
   grid-template-columns: repeat(5, 1fr);
   gap: 2px;
   padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
-  background: rgba(255, 255, 255, 0.96);
-  border-top: 1px solid #e2e8f0;
+  background: color-mix(in srgb, var(--bg-elevated) 96%, transparent);
+  color: var(--ink);
+  border-top: 1px solid var(--line);
   backdrop-filter: blur(12px);
 }
 
@@ -405,7 +436,7 @@ select {
   border: none;
   background: transparent;
   text-decoration: none;
-  color: #64748b;
+  color: var(--muted);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -456,13 +487,15 @@ select {
 .app-menu-panel {
   width: min(320px, 88vw);
   height: 100%;
-  background: #fff;
+  background: var(--bg-elevated);
+  color: var(--ink);
   padding: 18px 14px;
   display: flex;
   flex-direction: column;
   gap: 6px;
   box-shadow: -12px 0 40px rgba(15, 23, 42, 0.2);
   animation: nodafa-rise 0.25s ease;
+  overflow-y: auto;
 }
 
 .app-menu-panel__head {
@@ -471,7 +504,8 @@ select {
   gap: 10px;
   margin-bottom: 12px;
   padding-bottom: 12px;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
 }
 
 .app-menu-close {
@@ -480,7 +514,8 @@ select {
   width: 36px;
   height: 36px;
   border-radius: 10px;
-  background: #f1f5f9;
+  background: var(--bg-soft);
+  color: var(--ink);
   cursor: pointer;
   font-weight: 700;
 }
@@ -489,7 +524,7 @@ select {
 .app-menu-logout {
   display: block;
   text-decoration: none;
-  color: #0f172a;
+  color: var(--ink) !important;
   font-weight: 700;
   padding: 14px 12px;
   border-radius: 12px;
@@ -502,13 +537,13 @@ select {
 
 .app-menu-panel a:hover,
 .app-menu-logout:hover {
-  background: #f1f5f9;
+  background: var(--bg-soft);
 }
 
 .app-menu-logout {
   margin-top: auto;
-  background: #fee2e2;
-  color: #b91c1c;
+  background: color-mix(in srgb, var(--danger) 16%, var(--bg-elevated));
+  color: var(--danger) !important;
 }
 
 .home-header-actions {
@@ -562,9 +597,8 @@ body:has(.admin-shell) {
 .admin-shell {
   min-height: 100vh;
   display: flex;
-  background:
-    radial-gradient(circle at top right, rgba(30, 58, 138, 0.08), transparent 28%),
-    #f4f7fb;
+  background: var(--bg);
+  color: var(--ink);
 }
 
 .admin-sidebar {
@@ -678,9 +712,10 @@ body:has(.admin-shell) {
   align-items: center;
   gap: 12px;
   padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.92);
+  background: color-mix(in srgb, var(--bg-elevated) 92%, transparent);
+  color: var(--ink);
   backdrop-filter: blur(12px);
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--line);
 }
 
 .admin-burger {
@@ -688,14 +723,15 @@ body:has(.admin-shell) {
   height: 42px;
   border: none;
   border-radius: 12px;
-  background: #e2e8f0;
+  background: var(--bg-soft);
+  color: var(--ink);
   font-size: 18px;
   cursor: pointer;
 }
 
 .admin-topbar__user {
   font-size: 12px;
-  color: #64748b;
+  color: var(--muted);
 }
 
 .admin-topbar__link {
@@ -718,11 +754,12 @@ body:has(.admin-shell) {
 }
 
 .admin-stat {
-  background: #fff;
-  border: 1px solid #e2e8f0;
+  background: var(--bg-elevated);
+  border: 1px solid var(--line);
   border-radius: 16px;
   padding: 16px;
   box-shadow: var(--shadow);
+  color: var(--ink);
 }
 
 .admin-stat strong {
@@ -730,10 +767,11 @@ body:has(.admin-shell) {
   font-size: 28px;
   font-family: var(--font-display);
   margin-top: 6px;
+  color: var(--ink);
 }
 
 .admin-stat span {
-  color: #64748b;
+  color: var(--muted);
   font-size: 13px;
   font-weight: 700;
 }
@@ -853,18 +891,58 @@ body:has(.admin-shell) {
 
 /* ===== Thème sombre global ===== */
 html[data-theme="dark"] .app-navbar__search,
-html[data-theme="dark"] input,
-html[data-theme="dark"] textarea,
-html[data-theme="dark"] select {
-  background: color-mix(in srgb, var(--bg) 80%, #1f2937);
+html[data-theme="dark"] .app-nav-icon,
+html[data-theme="dark"] .app-nav-burger,
+html[data-theme="dark"] .app-nav-logout,
+html[data-theme="dark"] .app-menu-close {
+  background: var(--bg-soft);
   color: var(--ink);
-  border-color: var(--line);
 }
 
-html[data-theme="dark"] .app-navbar__search::placeholder,
+html[data-theme="dark"] .app-nav-link,
+html[data-theme="dark"] .app-navbar__username,
+html[data-theme="dark"] .app-menu-panel,
+html[data-theme="dark"] .app-menu-panel a,
+html[data-theme="dark"] .app-menu-panel strong,
+html[data-theme="dark"] .app-menu-panel__head {
+  color: var(--ink) !important;
+}
+
+html[data-theme="dark"] input,
+html[data-theme="dark"] textarea,
+html[data-theme="dark"] select,
+html[data-theme="dark"] .app-navbar__search {
+  background: var(--bg-soft) !important;
+  color: var(--ink) !important;
+  border-color: var(--line) !important;
+  caret-color: var(--ink);
+  -webkit-text-fill-color: var(--ink);
+}
+
 html[data-theme="dark"] input::placeholder,
-html[data-theme="dark"] textarea::placeholder {
-  color: #94a3b8;
+html[data-theme="dark"] textarea::placeholder,
+html[data-theme="dark"] .app-navbar__search::placeholder {
+  color: var(--muted) !important;
+  opacity: 1;
+  -webkit-text-fill-color: var(--muted);
+}
+
+html[data-theme="dark"] .nodafa-card {
+  background: var(--bg-elevated);
+  border-color: var(--line);
+  color: var(--ink);
+}
+
+html[data-theme="dark"] label,
+html[data-theme="dark"] h1,
+html[data-theme="dark"] h2,
+html[data-theme="dark"] h3,
+html[data-theme="dark"] p,
+html[data-theme="dark"] th,
+html[data-theme="dark"] td,
+html[data-theme="dark"] li,
+html[data-theme="dark"] strong {
+  color: inherit;
 }
 
 html[data-theme="dark"] .admin-shell {
@@ -922,10 +1000,20 @@ html[data-theme="light"] .messages-page {
 
 html[data-theme="dark"] .app-menu-panel a:hover,
 html[data-theme="dark"] .app-menu-logout:hover {
-  background: #1f2937;
+  background: var(--bg-soft);
 }
 
-html[data-theme="dark"] .app-menu-close {
-  background: #1f2937;
-  color: #e5e7eb;
+html[data-theme="dark"] .app-menu-logout {
+  background: color-mix(in srgb, var(--danger) 18%, var(--bg-elevated));
+  color: var(--danger) !important;
+}
+
+html[data-theme="dark"] .admin-sidebar a,
+html[data-theme="dark"] .admin-sidebar button {
+  color: #e2e8f0;
+}
+
+html[data-theme="dark"] option {
+  background: var(--bg-elevated);
+  color: var(--ink);
 }

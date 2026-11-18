@@ -517,6 +517,9 @@ export default function JournalPage() {
                   fontSize: 18,
                   fontFamily: "inherit",
                   lineHeight: 1.4,
+                  background: "transparent",
+                  color: "var(--ink)",
+                  caretColor: "var(--ink)",
                 }}
               />
 
@@ -908,6 +911,8 @@ export default function JournalPage() {
                                 borderRadius: 18,
                                 border: "1px solid var(--line-2)",
                                 background: "var(--bg-soft)",
+                                color: "var(--ink)",
+                                caretColor: "var(--ink)",
                                 outline: "none",
                                 fontSize: 16,
                                 minWidth: 0,
@@ -1140,8 +1145,10 @@ function InlineReplyForm({
             minWidth: 140,
             padding: "10px 14px",
             borderRadius: 18,
-            border: "1px solid var(--brand)",
-            background: "var(--brand-soft)",
+            border: "1px solid var(--line)",
+            background: "var(--bg-soft)",
+            color: "var(--ink)",
+            caretColor: "var(--ink)",
             outline: "none",
             fontSize: 16,
           }}
@@ -1205,7 +1212,16 @@ function CommentRow({
             <textarea
               value={editCommentText}
               onChange={(e) => setEditCommentText(e.target.value)}
-              style={{ flex: 1, padding: 8, borderRadius: 10, border: "1px solid var(--line-3)", minHeight: 40 }}
+              style={{
+                flex: 1,
+                padding: 8,
+                borderRadius: 10,
+                border: "1px solid var(--line-3)",
+                minHeight: 40,
+                background: "var(--bg-soft)",
+                color: "var(--ink)",
+                caretColor: "var(--ink)",
+              }}
             />
             <button type="button" onClick={onSaveEdit} style={{ ...smallBtn, background: "var(--link)", color: "#fff" }}>
               OK
@@ -1365,7 +1381,7 @@ function ReadingSection({
           whiteSpace: "pre-wrap",
           lineHeight: 1.5,
           fontSize: 14,
-          color: preview ? "var(--line-2)" : "var(--muted)",
+          color: preview ? "var(--ink)" : "var(--muted)",
           fontStyle: preview ? "normal" : "italic",
         }}
       >

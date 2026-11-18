@@ -247,7 +247,8 @@ export default function NotificationsPage() {
                 borderRadius: 12,
                 border: "1px solid var(--line)",
                 marginBottom: 12,
-                background: "var(--bg-soft-2)",
+                background: "var(--bg-soft)",
+                color: "var(--ink)",
               }}
             >
               <option value="">Choisir...</option>
@@ -272,6 +273,9 @@ export default function NotificationsPage() {
                 resize: "vertical",
                 fontFamily: "inherit",
                 marginBottom: 12,
+                background: "var(--bg-soft)",
+                color: "var(--ink)",
+                caretColor: "var(--ink)",
               }}
             />
 

@@ -61,7 +61,7 @@ export default function ThemeToggle({ variant = "menu" }: Props) {
         textAlign: "left",
         border: "none",
         background: "transparent",
-        color: "inherit",
+        color: "var(--ink)",
         fontWeight: 700,
         padding: "14px 12px",
         borderRadius: 12,
