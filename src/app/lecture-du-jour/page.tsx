@@ -107,7 +107,8 @@ export default function LectureDuJourPage() {
       <main style={{ maxWidth: 860, margin: "0 auto", padding: "20px 16px 36px" }}>
         <h1 style={{ margin: "0 0 8px", fontFamily: "var(--font-display)", fontSize: 30 }}>Lectures</h1>
         <p style={{ margin: "0 0 12px", color: "var(--muted)", lineHeight: 1.45 }}>
-          Touchez un dimanche pour ouvrir les lectures. La préparation de la messe reste ici ; chaque jour apparaît aussi dans le Journal.
+          Liste des dimanches pour préparer la messe à l’avance. Le Journal, lui, reçoit la lecture jour après jour
+          (aujourd’hui, puis demain, etc.).
         </p>
 
         {(() => {

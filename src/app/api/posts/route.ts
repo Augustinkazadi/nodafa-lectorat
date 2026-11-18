@@ -4,6 +4,7 @@ import { authOptions } from "../auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 import { saveUploadedFile } from "@/lib/upload";
 import { liveEventLabel } from "@/lib/liveEvents";
+import { dateAtNoon, dateKey, getOrSyncTodayReading } from "@/lib/aelf";
 
 export async function GET() {
   try {
@@ -26,12 +27,19 @@ export async function GET() {
       },
     });
 
-    // Lectures du jour (annonces spirituelles) + lives → journal
-    // Calendrier liturgique (LiturgicalEvent) → UNIQUEMENT /calendrier (jamais ici)
-    // Lectures de tous les jours (semaine + dimanches préparés) → journal
+    // Journal : une lecture par jour, au fur et à mesure (aujourd’hui + jours déjà passés).
+    // Les dimanches à venir restent sur /lecture-du-jour pour préparer la messe.
+    // Calendrier liturgique (LiturgicalEvent) → UNIQUEMENT /calendrier
+    try {
+      await getOrSyncTodayReading();
+    } catch {
+      /* ignore sync errors in feed */
+    }
+    const todayEnd = dateAtNoon(dateKey());
     const readings = await prisma.dailyReading.findMany({
+      where: { date: { lte: todayEnd } },
       orderBy: { date: "desc" },
-      take: 28,
+      take: 14,
     });
     const lives = await prisma.live.findMany({
       orderBy: { createdAt: "desc" },

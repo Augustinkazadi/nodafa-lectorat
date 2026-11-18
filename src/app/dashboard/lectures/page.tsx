@@ -42,7 +42,7 @@ export default function AdminLecturesPage() {
       const res = await fetch("/api/lectures/sync", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.message || "Erreur sync");
-      setStatus("✅ Lecture du jour récupérée automatiquement");
+      setStatus("✅ Lecture du jour prête — visible dans le Journal aujourd’hui");
       load();
     } catch (e: any) {
       setStatus("❌ " + (e.message || "Sync impossible"));
@@ -53,7 +53,7 @@ export default function AdminLecturesPage() {
 
   const syncSundays = async () => {
     setSyncingSundays(true);
-    setStatus("Publication semaine + dimanches...");
+    setStatus("Publication des dimanches à préparer...");
     try {
       const res = await fetch("/api/lectures/sync", {
         method: "POST",
@@ -62,7 +62,7 @@ export default function AdminLecturesPage() {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.message || "Erreur sync");
-      setStatus(`✅ ${data.message || "Publié"} — journal (chaque jour) + préparation des dimanches`);
+      setStatus(`✅ ${data.message || "Dimanches prêts"} — visibles dans Lecture pour préparer la messe`);
       load();
     } catch (e: any) {
       setStatus("❌ " + (e.message || "Sync impossible"));
@@ -73,7 +73,7 @@ export default function AdminLecturesPage() {
 
   const syncWeek = async () => {
     setSyncingWeek(true);
-    setStatus("Publication des lectures de la semaine pour le journal...");
+    setStatus("Préparation des textes (le journal restera jour par jour)...");
     try {
       const res = await fetch("/api/lectures/sync", {
         method: "POST",
@@ -82,7 +82,7 @@ export default function AdminLecturesPage() {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.message || "Erreur sync");
-      setStatus(`✅ ${data.message || "Semaine publiée"} — visibles dans le Journal`);
+      setStatus(`✅ ${data.message || "Textes préparés"}`);
       load();
     } catch (e: any) {
       setStatus("❌ " + (e.message || "Sync impossible"));
@@ -149,14 +149,15 @@ export default function AdminLecturesPage() {
     <AdminShell>
       <h1 style={{ margin: "0 0 8px", fontFamily: "var(--font-display)", fontSize: 30 }}>Lectures</h1>
       <p style={{ margin: "0 0 16px", color: "#64748b" }}>
-        Publiez les dimanches à l’avance pour que chaque lecteur prépare la messe (titres avec année liturgique A, B ou C).
+        Le <strong>Journal</strong> reçoit la lecture jour après jour (aujourd’hui, demain, etc.). Les{" "}
+        <strong>dimanches à venir</strong> restent dans la liste Lecture pour préparer la messe.
       </p>
 
       <div className="admin-panel">
         <h2>Récupération automatique (AELF)</h2>
         <p style={{ marginTop: 0, color: "#64748b" }}>
-          Importe les textes et génère un titre clair, ex. « 33ème dimanche du Temps Ordinaire — année liturgique A »
-          ou « Dimanche du Christ Roi de l&apos;univers ».
+          « Lecture du jour » → visible tout de suite dans le Journal. Les dimanches à venir → liste de préparation
+          uniquement (pas tout d’un coup dans le fil).
         </p>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           <button
@@ -165,16 +166,7 @@ export default function AdminLecturesPage() {
             onClick={syncAelf}
             disabled={syncing || syncingSundays || syncingWeek}
           >
-            {syncing ? "Synchronisation..." : "📥 Lecture du jour"}
-          </button>
-          <button
-            type="button"
-            className="nodafa-btn nodafa-btn-primary"
-            style={{ background: "#1d4ed8" }}
-            onClick={syncWeek}
-            disabled={syncing || syncingSundays || syncingWeek}
-          >
-            {syncingWeek ? "Publication..." : "📰 Semaine → Journal (lun–dim)"}
+            {syncing ? "Synchronisation..." : "📥 Lecture du jour → Journal"}
           </button>
           <button
             type="button"
@@ -183,7 +175,15 @@ export default function AdminLecturesPage() {
             onClick={syncSundays}
             disabled={syncing || syncingSundays || syncingWeek}
           >
-            {syncingSundays ? "Publication..." : "📅 Semaine + 6 dimanches"}
+            {syncingSundays ? "Publication..." : "📅 Dimanches à venir (préparation)"}
+          </button>
+          <button
+            type="button"
+            className="nodafa-btn nodafa-btn-ghost"
+            onClick={syncWeek}
+            disabled={syncing || syncingSundays || syncingWeek}
+          >
+            {syncingWeek ? "Préparation..." : "Préparer les textes de la semaine (sans tout afficher)"}
           </button>
         </div>
       </div>

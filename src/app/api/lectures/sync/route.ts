@@ -38,28 +38,29 @@ export async function POST(req: Request) {
     const body = await req.json().catch(() => ({}));
     const mode = String(body.mode || "").toLowerCase();
 
+    // Prépare les textes en base (le journal n’affiche que le jour J)
     if (mode === "week" || mode === "current-week" || body.currentWeek) {
       const readings = await syncCurrentWeek();
       return NextResponse.json({
-        message: `${readings.length} lectures de la semaine publiées pour le journal`,
+        message: `${readings.length} jours préparés — le journal n’affiche que le jour en cours, un par un`,
         readings,
       });
     }
 
+    // Dimanches à venir = liste de préparation (page Lecture)
     if (mode === "sundays" || mode === "upcoming-sundays" || body.upcomingSundays) {
       const count = Math.min(12, Math.max(1, parseInt(String(body.count || 6), 10) || 6));
-      // Semaine courante (journal) + dimanches à venir (préparation)
-      const week = await syncCurrentWeek();
+      const today = await syncDailyReadingFromAelf(dateKey());
       const sundays = await syncUpcomingSundays(count);
       return NextResponse.json({
-        message: `${week.length} jours de la semaine + ${sundays.length} dimanche(s) publiés`,
-        readings: [...week, ...sundays],
+        message: `Lecture du jour + ${sundays.length} dimanche(s) pour la préparation`,
+        readings: [today, ...sundays],
       });
     }
 
     const date = body.date ? String(body.date).slice(0, 10) : dateKey();
     const reading = await syncDailyReadingFromAelf(date);
-    return NextResponse.json({ message: "Lecture synchronisée", reading });
+    return NextResponse.json({ message: "Lecture du jour synchronisée (visible au journal)", reading });
   } catch (error: any) {
     console.error(error);
     return NextResponse.json({ message: error?.message || "Erreur sync" }, { status: 500 });
