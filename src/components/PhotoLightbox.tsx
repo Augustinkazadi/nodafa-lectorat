@@ -3,15 +3,19 @@
 import { useEffect, useRef, useState } from "react";
 
 type Props = {
-  src: string;
+  src?: string;
+  images?: string[];
+  index?: number;
   alt?: string;
   onClose: () => void;
 };
 
 /**
- * Visionneuse style Facebook : plein écran + pinch / double-tap / molette pour zoomer.
+ * Visionneuse style Facebook : plein écran + pinch / double-tap + galerie.
  */
-export default function PhotoLightbox({ src, alt = "Photo", onClose }: Props) {
+export default function PhotoLightbox({ src, images, index = 0, alt = "Photo", onClose }: Props) {
+  const gallery = images && images.length ? images : src ? [src] : [];
+  const [current, setCurrent] = useState(Math.min(Math.max(0, index), Math.max(0, gallery.length - 1)));
   const [scale, setScale] = useState(1);
   const [tx, setTx] = useState(0);
   const [ty, setTy] = useState(0);
@@ -23,6 +27,18 @@ export default function PhotoLightbox({ src, alt = "Photo", onClose }: Props) {
   const pinchStart = useRef<{ dist: number; scale: number } | null>(null);
   const panStart = useRef<{ x: number; y: number; tx: number; ty: number } | null>(null);
   const lastTap = useRef(0);
+
+  const activeSrc = gallery[current] || "";
+
+  useEffect(() => {
+    setCurrent(Math.min(Math.max(0, index), Math.max(0, gallery.length - 1)));
+  }, [index, gallery.length]);
+
+  useEffect(() => {
+    setScale(1);
+    setTx(0);
+    setTy(0);
+  }, [current]);
 
   useEffect(() => {
     scaleRef.current = scale;
@@ -39,13 +55,15 @@ export default function PhotoLightbox({ src, alt = "Photo", onClose }: Props) {
     document.body.style.overflow = "hidden";
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
+      if (e.key === "ArrowRight" && gallery.length > 1) setCurrent((c) => (c + 1) % gallery.length);
+      if (e.key === "ArrowLeft" && gallery.length > 1) setCurrent((c) => (c - 1 + gallery.length) % gallery.length);
     };
     window.addEventListener("keydown", onKey);
     return () => {
       document.body.style.overflow = prev;
       window.removeEventListener("keydown", onKey);
     };
-  }, [onClose]);
+  }, [onClose, gallery.length]);
 
   const clampScale = (s: number) => Math.min(5, Math.max(1, s));
 
@@ -57,11 +75,7 @@ export default function PhotoLightbox({ src, alt = "Photo", onClose }: Props) {
     }
   };
 
-  const distance = (a: { x: number; y: number }, b: { x: number; y: number }) => {
-    const dx = a.x - b.x;
-    const dy = a.y - b.y;
-    return Math.hypot(dx, dy);
-  };
+  const distance = (a: { x: number; y: number }, b: { x: number; y: number }) => Math.hypot(a.x - b.x, a.y - b.y);
 
   const onPointerDown = (e: React.PointerEvent) => {
     (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
@@ -73,12 +87,7 @@ export default function PhotoLightbox({ src, alt = "Photo", onClose }: Props) {
       pinchStart.current = { dist: distance(p1, p2), scale: scaleRef.current };
       panStart.current = null;
     } else if (pointers.current.size === 1 && scaleRef.current > 1) {
-      panStart.current = {
-        x: e.clientX,
-        y: e.clientY,
-        tx: txRef.current,
-        ty: tyRef.current,
-      };
+      panStart.current = { x: e.clientX, y: e.clientY, tx: txRef.current, ty: tyRef.current };
     }
   };
 
@@ -101,10 +110,8 @@ export default function PhotoLightbox({ src, alt = "Photo", onClose }: Props) {
     }
 
     if (pointers.current.size === 1 && panStart.current && scaleRef.current > 1) {
-      const dx = e.clientX - panStart.current.x;
-      const dy = e.clientY - panStart.current.y;
-      setTx(panStart.current.tx + dx);
-      setTy(panStart.current.ty + dy);
+      setTx(panStart.current.tx + (e.clientX - panStart.current.x));
+      setTy(panStart.current.ty + (e.clientY - panStart.current.y));
     }
   };
 
@@ -117,12 +124,7 @@ export default function PhotoLightbox({ src, alt = "Photo", onClose }: Props) {
       resetIfNeeded(scaleRef.current);
     } else if (pointers.current.size === 1 && scaleRef.current > 1) {
       const only = Array.from(pointers.current.values())[0];
-      panStart.current = {
-        x: only.x,
-        y: only.y,
-        tx: txRef.current,
-        ty: tyRef.current,
-      };
+      panStart.current = { x: only.x, y: only.y, tx: txRef.current, ty: tyRef.current };
     }
   };
 
@@ -144,11 +146,12 @@ export default function PhotoLightbox({ src, alt = "Photo", onClose }: Props) {
 
   const onWheel = (e: React.WheelEvent) => {
     e.preventDefault();
-    const delta = e.deltaY > 0 ? -0.15 : 0.15;
-    const next = clampScale(scaleRef.current + delta);
+    const next = clampScale(scaleRef.current + (e.deltaY > 0 ? -0.15 : 0.15));
     setScale(next);
     resetIfNeeded(next);
   };
+
+  if (!activeSrc) return null;
 
   return (
     <div
@@ -173,10 +176,14 @@ export default function PhotoLightbox({ src, alt = "Photo", onClose }: Props) {
           padding: "12px 14px",
           color: "#fff",
           flexShrink: 0,
+          gap: 10,
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <span style={{ fontSize: 13, opacity: 0.85 }}>Pincez pour zoomer · double-tap</span>
+        <span style={{ fontSize: 13, opacity: 0.85 }}>
+          {gallery.length > 1 ? `${current + 1} / ${gallery.length} · ` : ""}
+          Pincez pour zoomer
+        </span>
         <button
           type="button"
           onClick={onClose}
@@ -211,10 +218,17 @@ export default function PhotoLightbox({ src, alt = "Photo", onClose }: Props) {
           touchAction: "none",
           cursor: scale > 1 ? "grab" : "zoom-in",
           userSelect: "none",
+          position: "relative",
         }}
       >
+        {gallery.length > 1 && (
+          <>
+            <NavBtn side="left" onClick={() => setCurrent((c) => (c - 1 + gallery.length) % gallery.length)} />
+            <NavBtn side="right" onClick={() => setCurrent((c) => (c + 1) % gallery.length)} />
+          </>
+        )}
         <img
-          src={src}
+          src={activeSrc}
           alt={alt}
           draggable={false}
           style={{
@@ -230,5 +244,36 @@ export default function PhotoLightbox({ src, alt = "Photo", onClose }: Props) {
         />
       </div>
     </div>
+  );
+}
+
+function NavBtn({ side, onClick }: { side: "left" | "right"; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick();
+      }}
+      aria-label={side === "left" ? "Photo précédente" : "Photo suivante"}
+      style={{
+        position: "absolute",
+        [side]: 8,
+        top: "50%",
+        transform: "translateY(-50%)",
+        zIndex: 2,
+        width: 44,
+        height: 44,
+        borderRadius: "50%",
+        border: "none",
+        background: "rgba(255,255,255,0.18)",
+        color: "#fff",
+        fontSize: 22,
+        fontWeight: 800,
+        cursor: "pointer",
+      }}
+    >
+      {side === "left" ? "‹" : "›"}
+    </button>
   );
 }

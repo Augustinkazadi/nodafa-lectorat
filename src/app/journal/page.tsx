@@ -5,12 +5,24 @@ import { useRouter } from "next/navigation";
 import { uploadMediaFile } from "@/lib/clientUpload";
 import AppNavbar from "@/components/AppNavbar";
 import PhotoLightbox from "@/components/PhotoLightbox";
+import PostPhotoGrid from "@/components/PostPhotoGrid";
 
 type MediaPreview = {
   file: File;
   url: string;
   kind: "IMAGE" | "VIDEO" | "PDF";
 };
+
+const MAX_POST_PHOTOS = 10;
+
+function postImageList(post: any): string[] {
+  if (Array.isArray(post.mediaUrls) && post.mediaUrls.length) {
+    return post.mediaUrls.map((u: any) => (typeof u === "string" ? u : u?.url)).filter(Boolean);
+  }
+  const one = post.mediaUrl || post.image;
+  if (one && (post.mediaType === "IMAGE" || post.image)) return [one];
+  return [];
+}
 
 export default function JournalPage() {
   const { data: session, status } = useSession();
@@ -19,10 +31,11 @@ export default function JournalPage() {
 
   const [posts, setPosts] = useState<any[]>([]);
   const [newPostContent, setNewPostContent] = useState("");
-  const [mediaPreview, setMediaPreview] = useState<MediaPreview | null>(null);
+  const [mediaItems, setMediaItems] = useState<MediaPreview[]>([]);
   const [publishing, setPublishing] = useState(false);
   const [loading, setLoading] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const pickModeRef = useRef<"image" | "video" | "pdf">("image");
   const [profilePhoto, setProfilePhoto] = useState("");
   const [activeCommentPostId, setActiveCommentPostId] = useState<number | null>(null);
   const [commentText, setCommentText] = useState("");
@@ -36,7 +49,7 @@ export default function JournalPage() {
   const [menuPostId, setMenuPostId] = useState<number | null>(null);
   const [likesModalPost, setLikesModalPost] = useState<any | null>(null);
   const [highlightedPostId, setHighlightedPostId] = useState<number | null>(null);
-  const [photoViewerUrl, setPhotoViewerUrl] = useState<string | null>(null);
+  const [photoViewer, setPhotoViewer] = useState<{ images: string[]; index: number } | null>(null);
   const deepLinkApplied = useRef(false);
 
   useEffect(() => {
@@ -156,49 +169,110 @@ export default function JournalPage() {
     }
   };
 
-  const openFilePicker = (accept: string) => {
+  const openFilePicker = (accept: string, mode: "image" | "video" | "pdf") => {
     if (!fileInputRef.current) return;
+    pickModeRef.current = mode;
     fileInputRef.current.accept = accept;
+    fileInputRef.current.multiple = mode === "image";
     fileInputRef.current.click();
   };
 
   const handleMediaSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const mime = file.type;
-    let kind: MediaPreview["kind"] | null = null;
-    if (mime.startsWith("image/")) kind = "IMAGE";
-    else if (mime.startsWith("video/")) kind = "VIDEO";
-    else if (mime === "application/pdf" || file.name.toLowerCase().endsWith(".pdf")) kind = "PDF";
-    if (!kind) {
-      alert("Formats acceptés : photo, vidéo ou PDF.");
-      return;
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    const mode = pickModeRef.current;
+
+    if (mode === "image") {
+      const images = files.filter((f) => f.type.startsWith("image/"));
+      if (!images.length) {
+        alert("Choisissez des photos (images).");
+        return;
+      }
+      setMediaItems((prev) => {
+        const kept = prev.filter((m) => m.kind === "IMAGE");
+        const room = Math.max(0, MAX_POST_PHOTOS - kept.length);
+        if (room <= 0) {
+          alert(`Maximum ${MAX_POST_PHOTOS} photos par publication.`);
+          return kept;
+        }
+        const next = images.slice(0, room).map((file) => ({
+          file,
+          url: URL.createObjectURL(file),
+          kind: "IMAGE" as const,
+        }));
+        // retire vidéo/pdf si on passe en galerie
+        prev.filter((m) => m.kind !== "IMAGE").forEach((m) => URL.revokeObjectURL(m.url));
+        return [...kept, ...next];
+      });
+      setComposerOpen(true);
+    } else {
+      const file = files[0];
+      let kind: MediaPreview["kind"] | null = null;
+      if (mode === "video" && file.type.startsWith("video/")) kind = "VIDEO";
+      if (mode === "pdf" && (file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf"))) kind = "PDF";
+      if (!kind) {
+        alert("Formats acceptés : photo, vidéo ou PDF.");
+        return;
+      }
+      setMediaItems((prev) => {
+        prev.forEach((m) => URL.revokeObjectURL(m.url));
+        return [{ file, url: URL.createObjectURL(file), kind }];
+      });
+      setComposerOpen(true);
     }
-    if (mediaPreview?.url) URL.revokeObjectURL(mediaPreview.url);
-    setMediaPreview({ file, url: URL.createObjectURL(file), kind });
-    setComposerOpen(true);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const clearMedia = () => {
-    if (mediaPreview?.url) URL.revokeObjectURL(mediaPreview.url);
-    setMediaPreview(null);
+    setMediaItems((prev) => {
+      prev.forEach((m) => URL.revokeObjectURL(m.url));
+      return [];
+    });
     if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const removeMediaAt = (index: number) => {
+    setMediaItems((prev) => {
+      const copy = [...prev];
+      const [removed] = copy.splice(index, 1);
+      if (removed) URL.revokeObjectURL(removed.url);
+      return copy;
+    });
   };
 
   const handleCreatePost = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newPostContent.trim() && !mediaPreview) return;
+    if (!newPostContent.trim() && mediaItems.length === 0) return;
     setPublishing(true);
     try {
       let mediaUrl: string | undefined;
       let mediaType: string | undefined;
       let mediaName: string | undefined;
-      if (mediaPreview) {
-        const uploaded = await uploadMediaFile(mediaPreview.file, "post");
-        mediaUrl = uploaded.url;
-        mediaType = uploaded.mediaType;
-        mediaName = uploaded.name;
+      let mediaUrls: string[] | undefined;
+      let image: string | null = null;
+
+      if (mediaItems.length) {
+        const allImages = mediaItems.every((m) => m.kind === "IMAGE");
+        if (allImages) {
+          const uploaded = [];
+          for (const item of mediaItems.slice(0, MAX_POST_PHOTOS)) {
+            uploaded.push(await uploadMediaFile(item.file, "post"));
+          }
+          mediaUrls = uploaded.map((u) => u.url);
+          mediaUrl = mediaUrls[0];
+          mediaType = "IMAGE";
+          mediaName = uploaded[0]?.name;
+          image = mediaUrl;
+        } else {
+          const item = mediaItems[0];
+          const uploaded = await uploadMediaFile(item.file, "post");
+          mediaUrl = uploaded.url;
+          mediaType = uploaded.mediaType;
+          mediaName = uploaded.name;
+          image = mediaType === "IMAGE" ? mediaUrl : null;
+        }
       }
+
       const res = await fetch("/api/posts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -207,7 +281,8 @@ export default function JournalPage() {
           mediaUrl,
           mediaType,
           mediaName,
-          image: mediaType === "IMAGE" ? mediaUrl : null,
+          mediaUrls,
+          image,
         }),
       });
       if (res.ok) {
@@ -397,9 +472,9 @@ export default function JournalPage() {
             </button>
           </div>
           <div style={{ borderTop: "1px solid #e4e6eb", paddingTop: 10, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6 }}>
-            <ComposerAction label="Photo" color="#45bd62" onClick={() => openFilePicker("image/*")} />
-            <ComposerAction label="Vidéo" color="#f02849" onClick={() => openFilePicker("video/*")} />
-            <ComposerAction label="PDF / Fichier" color="#f7b928" onClick={() => openFilePicker("application/pdf,.pdf")} />
+            <ComposerAction label="Photos" color="#45bd62" onClick={() => openFilePicker("image/*", "image")} />
+            <ComposerAction label="Vidéo" color="#f02849" onClick={() => openFilePicker("video/*", "video")} />
+            <ComposerAction label="PDF / Fichier" color="#f7b928" onClick={() => openFilePicker("application/pdf,.pdf", "pdf")} />
           </div>
           <input type="file" ref={fileInputRef} onChange={handleMediaSelect} style={{ display: "none" }} />
         </section>
@@ -445,22 +520,58 @@ export default function JournalPage() {
                 }}
               />
 
-              {mediaPreview && (
+              {mediaItems.length > 0 && mediaItems.every((m) => m.kind === "IMAGE") && (
+                <div style={{ marginBottom: 12 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(96px, 1fr))", gap: 8 }}>
+                    {mediaItems.map((item, i) => (
+                      <div key={item.url} style={{ position: "relative", borderRadius: 8, overflow: "hidden", border: "1px solid #e4e6eb", aspectRatio: "1" }}>
+                        <img src={item.url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                        <button
+                          type="button"
+                          onClick={() => removeMediaAt(i)}
+                          style={{ ...iconBtn, position: "absolute", top: 4, right: 4, background: "rgba(0,0,0,0.65)", color: "#fff", width: 28, height: 28 }}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                    {mediaItems.length < MAX_POST_PHOTOS && (
+                      <button
+                        type="button"
+                        onClick={() => openFilePicker("image/*", "image")}
+                        style={{
+                          border: "1px dashed #ccd0d5",
+                          borderRadius: 8,
+                          background: "#f7f8fa",
+                          cursor: "pointer",
+                          fontWeight: 700,
+                          color: "#65676b",
+                          minHeight: 96,
+                        }}
+                      >
+                        + Photo
+                      </button>
+                    )}
+                  </div>
+                  <div style={{ marginTop: 8, fontSize: 12, color: "#65676b" }}>
+                    {mediaItems.length}/{MAX_POST_PHOTOS} photos
+                  </div>
+                </div>
+              )}
+
+              {mediaItems.length === 1 && mediaItems[0].kind !== "IMAGE" && (
                 <div style={{ position: "relative", marginBottom: 12, border: "1px solid #e4e6eb", borderRadius: 8, overflow: "hidden" }}>
                   <button type="button" onClick={clearMedia} style={{ ...iconBtn, position: "absolute", top: 8, right: 8, zIndex: 2, background: "rgba(0,0,0,0.65)", color: "#fff" }}>
                     ✕
                   </button>
-                  {mediaPreview.kind === "IMAGE" && (
-                    <img src={mediaPreview.url} alt="Aperçu" style={{ width: "100%", maxHeight: 360, objectFit: "cover", display: "block" }} />
+                  {mediaItems[0].kind === "VIDEO" && (
+                    <video src={mediaItems[0].url} controls style={{ width: "100%", maxHeight: 360, display: "block", background: "#000" }} />
                   )}
-                  {mediaPreview.kind === "VIDEO" && (
-                    <video src={mediaPreview.url} controls style={{ width: "100%", maxHeight: 360, display: "block", background: "#000" }} />
-                  )}
-                  {mediaPreview.kind === "PDF" && (
+                  {mediaItems[0].kind === "PDF" && (
                     <div style={{ padding: 20, background: "#f7f8fa", display: "flex", alignItems: "center", gap: 12 }}>
                       <div style={{ fontSize: 32 }}>📄</div>
                       <div>
-                        <div style={{ fontWeight: 700 }}>{mediaPreview.file.name}</div>
+                        <div style={{ fontWeight: 700 }}>{mediaItems[0].file.name}</div>
                         <div style={{ fontSize: 13, color: "#65676b" }}>Document PDF prêt à publier</div>
                       </div>
                     </div>
@@ -471,13 +582,13 @@ export default function JournalPage() {
               <div style={{ border: "1px solid #ccd0d5", borderRadius: 8, padding: "10px 12px", display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
                 <span style={{ fontWeight: 600, fontSize: 14 }}>Ajouter à votre publication</span>
                 <div style={{ display: "flex", gap: 8 }}>
-                  <button type="button" onClick={() => openFilePicker("image/*")} style={miniMediaBtn} title="Photo">
+                  <button type="button" onClick={() => openFilePicker("image/*", "image")} style={miniMediaBtn} title="Photos">
                     📷
                   </button>
-                  <button type="button" onClick={() => openFilePicker("video/*")} style={miniMediaBtn} title="Vidéo">
+                  <button type="button" onClick={() => openFilePicker("video/*", "video")} style={miniMediaBtn} title="Vidéo">
                     🎬
                   </button>
-                  <button type="button" onClick={() => openFilePicker("application/pdf,.pdf")} style={miniMediaBtn} title="PDF">
+                  <button type="button" onClick={() => openFilePicker("application/pdf,.pdf", "pdf")} style={miniMediaBtn} title="PDF">
                     📄
                   </button>
                 </div>
@@ -485,7 +596,7 @@ export default function JournalPage() {
 
               <button
                 type="submit"
-                disabled={publishing || (!newPostContent.trim() && !mediaPreview)}
+                disabled={publishing || (!newPostContent.trim() && mediaItems.length === 0)}
                 style={{
                   width: "100%",
                   border: "none",
@@ -493,9 +604,9 @@ export default function JournalPage() {
                   padding: "10px 0",
                   fontWeight: 700,
                   fontSize: 15,
-                  cursor: publishing || (!newPostContent.trim() && !mediaPreview) ? "not-allowed" : "pointer",
-                  background: newPostContent.trim() || mediaPreview ? "#1877f2" : "#e4e6eb",
-                  color: newPostContent.trim() || mediaPreview ? "#fff" : "#bcc0c4",
+                  cursor: publishing || (!newPostContent.trim() && mediaItems.length === 0) ? "not-allowed" : "pointer",
+                  background: newPostContent.trim() || mediaItems.length ? "#1877f2" : "#e4e6eb",
+                  color: newPostContent.trim() || mediaItems.length ? "#fff" : "#bcc0c4",
                 }}
               >
                 {publishing ? "Publication..." : "Publier"}
@@ -515,6 +626,7 @@ export default function JournalPage() {
           const isMyPost = post.author?.id === userId || post.author?.prenom === firstName;
           const mediaUrl = post.mediaUrl || post.image;
           const mediaType = post.mediaType || (post.image ? "IMAGE" : null);
+          const imageList = isPost ? postImageList(post) : mediaType === "IMAGE" && mediaUrl ? [mediaUrl] : [];
 
           const isHighlighted = isPost && highlightedPostId === post.id;
 
@@ -641,26 +753,11 @@ export default function JournalPage() {
                 </div>
               )}
 
-              {mediaUrl && mediaType === "IMAGE" && (
-                <button
-                  type="button"
-                  onClick={() => setPhotoViewerUrl(mediaUrl)}
-                  aria-label="Agrandir la photo"
-                  style={{
-                    display: "block",
-                    width: "100%",
-                    padding: 0,
-                    border: "none",
-                    background: "#000",
-                    cursor: "zoom-in",
-                  }}
-                >
-                  <img
-                    src={mediaUrl}
-                    alt="Publication"
-                    style={{ width: "100%", maxHeight: 560, objectFit: "contain", display: "block", pointerEvents: "none" }}
-                  />
-                </button>
+              {imageList.length > 0 && (
+                <PostPhotoGrid
+                  images={imageList}
+                  onOpen={(index) => setPhotoViewer({ images: imageList, index })}
+                />
               )}
 
               {mediaUrl && mediaType === "VIDEO" && (
@@ -906,8 +1003,13 @@ export default function JournalPage() {
         })}
       </main>
 
-      {photoViewerUrl && (
-        <PhotoLightbox src={photoViewerUrl} alt="Photo du journal" onClose={() => setPhotoViewerUrl(null)} />
+      {photoViewer && (
+        <PhotoLightbox
+          images={photoViewer.images}
+          index={photoViewer.index}
+          alt="Photo du journal"
+          onClose={() => setPhotoViewer(null)}
+        />
       )}
 
       {likesModalPost && (

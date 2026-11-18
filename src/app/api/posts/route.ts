@@ -46,12 +46,16 @@ export async function GET() {
       take: 20,
     });
 
-    const formattedPosts = posts.map((p) => ({
-      ...p,
-      feedType: "POST",
-      mediaUrl: p.mediaUrl || p.image || null,
-      mediaType: p.mediaType || (p.image ? "IMAGE" : null),
-    }));
+    const formattedPosts = posts.map((p) => {
+      const urls = normalizeMediaUrls(p.mediaUrls, p.mediaUrl || p.image);
+      return {
+        ...p,
+        feedType: "POST",
+        mediaUrl: p.mediaUrl || p.image || urls[0] || null,
+        mediaType: p.mediaType || (p.image || urls.length ? "IMAGE" : null),
+        mediaUrls: urls,
+      };
+    });
 
     const formattedReadings = readings.map((r) => ({
       id: `reading_${r.id}`,
@@ -121,6 +125,7 @@ export async function POST(req: Request) {
     let mediaType: string | null = null;
     let mediaName: string | null = null;
     let image: string | null = null;
+    let mediaUrls: string[] = [];
 
     if (contentType.includes("multipart/form-data")) {
       const formData = await req.formData();
@@ -131,15 +136,23 @@ export async function POST(req: Request) {
         mediaUrl = uploaded.url;
         mediaType = uploaded.mediaType;
         mediaName = uploaded.name;
-        if (uploaded.mediaType === "IMAGE") image = uploaded.url;
+        if (uploaded.mediaType === "IMAGE") {
+          image = uploaded.url;
+          mediaUrls = [uploaded.url];
+        }
       }
     } else {
       const body = await req.json();
       content = (body.content || "").trim();
-      mediaUrl = body.mediaUrl || body.image || null;
-      mediaType = body.mediaType || (body.image ? "IMAGE" : null);
+      const fromArray = Array.isArray(body.mediaUrls)
+        ? body.mediaUrls.map((u: any) => String(u || "").trim()).filter(Boolean).slice(0, 10)
+        : [];
+      mediaUrls = fromArray;
+      mediaUrl = body.mediaUrl || body.image || fromArray[0] || null;
+      mediaType = body.mediaType || (mediaUrl && fromArray.length ? "IMAGE" : body.image ? "IMAGE" : null);
       mediaName = body.mediaName || null;
       image = body.image || (mediaType === "IMAGE" ? mediaUrl : null);
+      if (mediaType === "IMAGE" && mediaUrl && !mediaUrls.length) mediaUrls = [mediaUrl];
     }
 
     if (!content && !mediaUrl) {
@@ -153,6 +166,7 @@ export async function POST(req: Request) {
         mediaUrl,
         mediaType,
         mediaName,
+        mediaUrls: mediaType === "IMAGE" && mediaUrls.length ? mediaUrls : undefined,
         authorId: parseInt(userSession.id),
         sharesCount: 0,
       },
@@ -163,9 +177,24 @@ export async function POST(req: Request) {
       },
     });
 
-    return NextResponse.json({ ...post, feedType: "POST" });
+    const urls = normalizeMediaUrls(post.mediaUrls, post.mediaUrl || post.image);
+    return NextResponse.json({ ...post, feedType: "POST", mediaUrls: urls });
   } catch (error: any) {
     console.error(error);
     return NextResponse.json({ message: error?.message || "Erreur serveur" }, { status: 500 });
   }
+}
+
+function normalizeMediaUrls(raw: unknown, fallback?: string | null) {
+  const list: string[] = [];
+  if (Array.isArray(raw)) {
+    for (const item of raw) {
+      if (typeof item === "string" && item.trim()) list.push(item.trim());
+      else if (item && typeof item === "object" && typeof (item as any).url === "string") {
+        list.push(String((item as any).url).trim());
+      }
+    }
+  }
+  if (!list.length && fallback) list.push(fallback);
+  return Array.from(new Set(list)).slice(0, 10);
 }
