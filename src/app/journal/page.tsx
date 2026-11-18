@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { uploadMediaFile } from "@/lib/clientUpload";
 import AppNavbar from "@/components/AppNavbar";
+import PhotoLightbox from "@/components/PhotoLightbox";
 
 type MediaPreview = {
   file: File;
@@ -35,6 +36,7 @@ export default function JournalPage() {
   const [menuPostId, setMenuPostId] = useState<number | null>(null);
   const [likesModalPost, setLikesModalPost] = useState<any | null>(null);
   const [highlightedPostId, setHighlightedPostId] = useState<number | null>(null);
+  const [photoViewerUrl, setPhotoViewerUrl] = useState<string | null>(null);
   const deepLinkApplied = useRef(false);
 
   useEffect(() => {
@@ -640,9 +642,25 @@ export default function JournalPage() {
               )}
 
               {mediaUrl && mediaType === "IMAGE" && (
-                <div style={{ background: "#000" }}>
-                  <img src={mediaUrl} alt="Publication" style={{ width: "100%", maxHeight: 560, objectFit: "contain", display: "block" }} />
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setPhotoViewerUrl(mediaUrl)}
+                  aria-label="Agrandir la photo"
+                  style={{
+                    display: "block",
+                    width: "100%",
+                    padding: 0,
+                    border: "none",
+                    background: "#000",
+                    cursor: "zoom-in",
+                  }}
+                >
+                  <img
+                    src={mediaUrl}
+                    alt="Publication"
+                    style={{ width: "100%", maxHeight: 560, objectFit: "contain", display: "block", pointerEvents: "none" }}
+                  />
+                </button>
               )}
 
               {mediaUrl && mediaType === "VIDEO" && (
@@ -887,6 +905,10 @@ export default function JournalPage() {
           );
         })}
       </main>
+
+      {photoViewerUrl && (
+        <PhotoLightbox src={photoViewerUrl} alt="Photo du journal" onClose={() => setPhotoViewerUrl(null)} />
+      )}
 
       {likesModalPost && (
         <div
