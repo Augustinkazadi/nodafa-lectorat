@@ -172,12 +172,12 @@ export default function NotificationsPage() {
                   className="nodafa-card nodafa-rise"
                   style={{
                     padding: 18,
-                    background: notif.isRead ? "white" : "linear-gradient(180deg,#eff6ff,#ffffff)",
-                    borderColor: isBirthday ? "#bfdbfe" : undefined,
+                    background: notif.isRead ? "var(--bg-elevated)" : "linear-gradient(180deg, var(--brand-soft), var(--bg-elevated))",
+                    borderColor: isBirthday ? "var(--brand)" : undefined,
                   }}
                 >
                   <div style={{ fontWeight: 800, marginBottom: 6 }}>{notif.title}</div>
-                  <div style={{ color: "#334155", lineHeight: 1.5 }}>{notif.message}</div>
+                  <div style={{ color: "var(--ink)", lineHeight: 1.5 }}>{notif.message}</div>
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 10, marginTop: 12, alignItems: "center" }}>
                     <span style={{ fontSize: 12, color: "var(--muted)" }}>
                       {new Date(notif.createdAt).toLocaleString("fr-FR")}
@@ -247,7 +247,7 @@ export default function NotificationsPage() {
                 borderRadius: 12,
                 border: "1px solid var(--line)",
                 marginBottom: 12,
-                background: "#f8fafc",
+                background: "var(--bg-soft-2)",
               }}
             >
               <option value="">Choisir...</option>

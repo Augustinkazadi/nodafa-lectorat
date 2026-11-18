@@ -79,7 +79,7 @@ export default function AdminAgendaPage() {
   return (
     <AdminShell>
       <h1 style={{ margin: "0 0 8px", fontFamily: "var(--font-display)", fontSize: 30 }}>Agenda liturgique</h1>
-      <p style={{ margin: "0 0 16px", color: "#64748b" }}>Ajoutez, modifiez ou supprimez les fêtes et couleurs du calendrier.</p>
+      <p style={{ margin: "0 0 16px", color: "var(--muted)" }}>Ajoutez, modifiez ou supprimez les fêtes et couleurs du calendrier.</p>
 
       <div className="admin-panel">
         <h2>Nouvel événement</h2>
@@ -145,7 +145,7 @@ export default function AdminAgendaPage() {
               </thead>
               <tbody>
                 {events.map((event) => (
-                  <tr key={event.id} style={{ background: editingId === event.id ? "#eff6ff" : undefined }}>
+                  <tr key={event.id} style={{ background: editingId === event.id ? "var(--brand-soft)" : undefined }}>
                     <td>{new Date(event.date).toLocaleDateString("fr-FR")}</td>
                     <td>{event.title}</td>
                     <td>{event.color}</td>
@@ -155,7 +155,7 @@ export default function AdminAgendaPage() {
                         <button type="button" className="nodafa-btn nodafa-btn-ghost" style={{ padding: "8px 12px" }} onClick={() => startEdit(event)}>
                           Modifier
                         </button>
-                        <button type="button" className="nodafa-btn nodafa-btn-ghost" style={{ padding: "8px 12px", color: "#dc2626" }} onClick={() => remove(event.id)}>
+                        <button type="button" className="nodafa-btn nodafa-btn-ghost" style={{ padding: "8px 12px", color: "var(--danger)" }} onClick={() => remove(event.id)}>
                           Supprimer
                         </button>
                       </div>

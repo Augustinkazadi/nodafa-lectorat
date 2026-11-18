@@ -104,7 +104,7 @@ export default function AdminPublicationsPage() {
   return (
     <AdminShell>
       <h1 style={{ margin: "0 0 8px", fontFamily: "var(--font-display)", fontSize: 30 }}>Publications</h1>
-      <p style={{ margin: "0 0 16px", color: "#64748b" }}>
+      <p style={{ margin: "0 0 16px", color: "var(--muted)" }}>
         Publiez des fichiers pour le journal et des photos de lecture.
       </p>
 
@@ -123,7 +123,7 @@ export default function AdminPublicationsPage() {
             accept="image/*,video/*,application/pdf,.pdf"
             onChange={(e) => setFile(e.target.files?.[0] || null)}
           />
-          {file && <div style={{ color: "#64748b", fontSize: 14 }}>Fichier : {file.name}</div>}
+          {file && <div style={{ color: "var(--muted)", fontSize: 14 }}>Fichier : {file.name}</div>}
           <button type="submit" className="nodafa-btn nodafa-btn-primary" disabled={publishing || (!content.trim() && !file)}>
             {publishing ? "Publication..." : "Publier dans le journal"}
           </button>
@@ -133,7 +133,7 @@ export default function AdminPublicationsPage() {
 
       <div className="admin-panel">
         <h2>📸 Photo de lecture</h2>
-        <p style={{ marginTop: 0, color: "#64748b", fontSize: 14 }}>
+        <p style={{ marginTop: 0, color: "var(--muted)", fontSize: 14 }}>
           Ajoute une image à la lecture du jour et la publie aussi dans le journal communautaire.
         </p>
         <form className="admin-form-grid" onSubmit={publishReadingPhoto}>
@@ -150,7 +150,7 @@ export default function AdminPublicationsPage() {
             required
             onChange={(e) => setPhotoFile(e.target.files?.[0] || null)}
           />
-          {photoFile && <div style={{ color: "#64748b", fontSize: 14 }}>Photo : {photoFile.name}</div>}
+          {photoFile && <div style={{ color: "var(--muted)", fontSize: 14 }}>Photo : {photoFile.name}</div>}
           <button type="submit" className="nodafa-btn nodafa-btn-primary" style={{ background: "#0f766e" }} disabled={photoPublishing || !photoFile}>
             {photoPublishing ? "Publication..." : "Publier la photo de lecture"}
           </button>

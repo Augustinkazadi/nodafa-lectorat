@@ -29,7 +29,7 @@ export default function BrandLogo({
           height: size,
           borderRadius: "50%",
           objectFit: "cover",
-          background: "#fff",
+          background: "var(--bg-elevated)",
           boxShadow: "0 4px 14px rgba(15, 23, 42, 0.12)",
           flexShrink: 0,
         }}

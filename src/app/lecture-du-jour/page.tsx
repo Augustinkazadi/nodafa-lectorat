@@ -125,14 +125,14 @@ export default function LectureDuJourPage() {
               style={{
                 padding: "14px 16px",
                 marginBottom: 16,
-                background: "linear-gradient(135deg, #eff6ff, #f0fdf4)",
-                border: "1px solid #bfdbfe",
+                background: "linear-gradient(135deg, var(--brand-soft), color-mix(in srgb, var(--bg-elevated) 70%, #bbf7d0))",
+                border: "1px solid var(--line)",
               }}
             >
-              <div style={{ fontSize: 12, fontWeight: 700, color: "#1d4ed8", letterSpacing: 0.3, marginBottom: 4 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "var(--brand)", letterSpacing: 0.3, marginBottom: 4 }}>
                 TEMPS DE L’ANNÉE LITURGIQUE
               </div>
-              <div style={{ fontSize: 17, fontWeight: 800, color: "#0f172a", lineHeight: 1.35 }}>
+              <div style={{ fontSize: 17, fontWeight: 800, color: "var(--ink)", lineHeight: 1.35 }}>
                 {season && year
                   ? `Nous sommes actuellement en ${season} — année liturgique ${year}`
                   : season
@@ -144,7 +144,7 @@ export default function LectureDuJourPage() {
         })()}
 
         {error && (
-          <div className="nodafa-card" style={{ padding: 20, color: "#b91c1c", marginBottom: 14 }}>
+          <div className="nodafa-card" style={{ padding: 20, color: "var(--danger)", marginBottom: 14 }}>
             {error}
           </div>
         )}
@@ -164,9 +164,9 @@ export default function LectureDuJourPage() {
               className="nodafa-btn nodafa-btn-ghost"
               style={{
                 padding: "8px 12px",
-                background: filter === key ? "#1877f2" : undefined,
+                background: filter === key ? "var(--link)" : undefined,
                 color: filter === key ? "#fff" : undefined,
-                borderColor: filter === key ? "#1877f2" : undefined,
+                borderColor: filter === key ? "var(--link)" : undefined,
               }}
             >
               {label}
@@ -176,7 +176,7 @@ export default function LectureDuJourPage() {
 
         <div style={{ display: "grid", gap: 10 }}>
           {visible.length === 0 && (
-            <div className="nodafa-card" style={{ padding: 20, color: "#64748b" }}>
+            <div className="nodafa-card" style={{ padding: 20, color: "var(--muted)" }}>
               Aucune lecture publiée pour ce filtre. Un admin peut publier les prochains dimanches depuis l’espace Lectures.
             </div>
           )}
@@ -195,14 +195,14 @@ export default function LectureDuJourPage() {
                   width: "100%",
                   textAlign: "left",
                   padding: 16,
-                  border: "1px solid #e2e8f0",
-                  background: "#fff",
+                  border: "1px solid var(--line)",
+                  background: "var(--bg-elevated)",
                   cursor: "pointer",
                 }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "flex-start" }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 12, color: "#64748b", fontWeight: 700 }}>
+                    <div style={{ fontSize: 12, color: "var(--muted)", fontWeight: 700 }}>
                       {new Date(r.date).toLocaleDateString("fr-FR", {
                         weekday: "long",
                         day: "numeric",
@@ -210,21 +210,21 @@ export default function LectureDuJourPage() {
                         year: "numeric",
                       })}
                     </div>
-                    <div style={{ marginTop: 4, fontWeight: 800, fontSize: 17, color: "#0f172a", lineHeight: 1.35 }}>
+                    <div style={{ marginTop: 4, fontWeight: 800, fontSize: 17, color: "var(--ink)", lineHeight: 1.35 }}>
                       {r.title}
                     </div>
-                    <div style={{ marginTop: 8, color: "#1877f2", fontWeight: 700, fontSize: 13 }}>Ouvrir les lectures →</div>
+                    <div style={{ marginTop: 8, color: "var(--link)", fontWeight: 700, fontSize: 13 }}>Ouvrir les lectures →</div>
                   </div>
                   <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "flex-start" }}>
                     {isToday && <span className="admin-chip admin-chip--admin">Aujourd’hui</span>}
                     {isFuture && <span className="admin-chip admin-chip--ok">À préparer</span>}
                     {r.liturgicalSeason && (
-                      <span className="admin-chip" style={{ background: "#ecfdf5", color: "#047857" }}>
+                      <span className="admin-chip" style={{ background: "color-mix(in srgb, var(--success) 18%, var(--bg-elevated))", color: "var(--success)" }}>
                         {r.liturgicalSeason}
                       </span>
                     )}
                     {r.liturgicalYear && (
-                      <span className="admin-chip" style={{ background: "#fef3c7", color: "#92400e" }}>
+                      <span className="admin-chip" style={{ background: "color-mix(in srgb, var(--accent) 22%, var(--bg-elevated))", color: "var(--accent)" }}>
                         Année {r.liturgicalYear}
                       </span>
                     )}
@@ -281,12 +281,12 @@ export default function LectureDuJourPage() {
                 gap: 12,
                 alignItems: "flex-start",
                 padding: "16px 20px 12px",
-                borderBottom: "1px solid #e2e8f0",
+                borderBottom: "1px solid var(--line)",
                 flexShrink: 0,
               }}
             >
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, color: "#64748b", fontWeight: 700 }}>
+                <div style={{ fontSize: 13, color: "var(--muted)", fontWeight: 700 }}>
                   {new Date(selected.date).toLocaleDateString("fr-FR", {
                     weekday: "long",
                     day: "numeric",
@@ -311,12 +311,12 @@ export default function LectureDuJourPage() {
 
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 14 }}>
               {selected.liturgicalSeason && (
-                <span className="admin-chip" style={{ background: "#ecfdf5", color: "#047857" }}>
+                <span className="admin-chip" style={{ background: "color-mix(in srgb, var(--success) 18%, var(--bg-elevated))", color: "var(--success)" }}>
                   {selected.liturgicalSeason}
                 </span>
               )}
               {selected.liturgicalYear && (
-                <span className="admin-chip" style={{ background: "#fef3c7", color: "#92400e" }}>
+                <span className="admin-chip" style={{ background: "color-mix(in srgb, var(--accent) 22%, var(--bg-elevated))", color: "var(--accent)" }}>
                   Année liturgique {selected.liturgicalYear}
                 </span>
               )}
@@ -336,7 +336,7 @@ export default function LectureDuJourPage() {
             )}
 
             {selected.commentary && (
-              <p style={{ color: "#475569", fontStyle: "italic", marginBottom: 18 }}>{selected.commentary}</p>
+              <p style={{ color: "var(--muted)", fontStyle: "italic", marginBottom: 18 }}>{selected.commentary}</p>
             )}
 
             <ReadingBlock title="1ʳᵉ lecture" text={selected.firstReading} />
@@ -347,7 +347,7 @@ export default function LectureDuJourPage() {
             />
             <ReadingBlock title="Évangile" text={selected.gospel} accent emptyLabel="Évangile non disponible" />
 
-            <div style={{ marginTop: 16, marginBottom: 8, fontSize: 12, color: "#94a3b8" }}>
+            <div style={{ marginTop: 16, marginBottom: 8, fontSize: 12, color: "var(--muted)" }}>
               Source : {selected.source === "aelf" ? "AELF (synchronisation)" : "Publication manuelle"}
             </div>
             </div>
@@ -356,8 +356,8 @@ export default function LectureDuJourPage() {
               style={{
                 flexShrink: 0,
                 padding: "12px 16px calc(12px + env(safe-area-inset-bottom))",
-                borderTop: "1px solid #e2e8f0",
-                background: "#fff",
+                borderTop: "1px solid var(--line)",
+                background: "var(--bg-elevated)",
               }}
             >
               <button
@@ -394,16 +394,16 @@ function ReadingBlock({
         marginBottom: 16,
         padding: 14,
         borderRadius: 14,
-        background: accent ? "#eff6ff" : "#f8fafc",
-        border: `1px solid ${accent ? "#bfdbfe" : "#e2e8f0"}`,
+        background: accent ? "var(--brand-soft)" : "var(--bg-soft-2)",
+        border: `1px solid ${accent ? "var(--brand)" : "var(--line)"}`,
       }}
     >
-      <h3 style={{ margin: "0 0 10px", color: accent ? "#1d4ed8" : "#0f172a", fontSize: 16 }}>{title}</h3>
+      <h3 style={{ margin: "0 0 10px", color: accent ? "var(--brand)" : "var(--ink)", fontSize: 16 }}>{title}</h3>
       <div
         style={{
           whiteSpace: "pre-wrap",
           lineHeight: 1.6,
-          color: text ? "#1e293b" : "#94a3b8",
+          color: text ? "var(--ink)" : "var(--muted)",
           fontSize: 15,
           fontStyle: text ? "normal" : "italic",
         }}

@@ -148,14 +148,14 @@ export default function AdminLecturesPage() {
   return (
     <AdminShell>
       <h1 style={{ margin: "0 0 8px", fontFamily: "var(--font-display)", fontSize: 30 }}>Lectures</h1>
-      <p style={{ margin: "0 0 16px", color: "#64748b" }}>
+      <p style={{ margin: "0 0 16px", color: "var(--muted)" }}>
         Le <strong>Journal</strong> reçoit la lecture jour après jour (aujourd’hui, demain, etc.). Les{" "}
         <strong>dimanches à venir</strong> restent dans la liste Lecture pour préparer la messe.
       </p>
 
       <div className="admin-panel">
         <h2>Récupération automatique (AELF)</h2>
-        <p style={{ marginTop: 0, color: "#64748b" }}>
+        <p style={{ marginTop: 0, color: "var(--muted)" }}>
           « Lecture du jour » → visible tout de suite dans le Journal. Les dimanches à venir → liste de préparation
           uniquement (pas tout d’un coup dans le fil).
         </p>
@@ -190,7 +190,7 @@ export default function AdminLecturesPage() {
 
       <div className="admin-panel">
         <h2>Nouvelle lecture manuelle</h2>
-        <p style={{ marginTop: 0, color: "#64748b", fontSize: 14 }}>
+        <p style={{ marginTop: 0, color: "var(--muted)", fontSize: 14 }}>
           Titre conseillé : « Dimanche du Christ Roi de l&apos;univers » ou « 1er dimanche du Temps Ordinaire — année liturgique A ».
         </p>
         <form className="admin-form-grid" onSubmit={submit}>
@@ -255,11 +255,11 @@ export default function AdminLecturesPage() {
                     <td>{new Date(item.date).toLocaleDateString("fr-FR")}</td>
                     <td>
                       <strong>{item.title}</strong>
-                      {item.isSunday && <div style={{ fontSize: 12, color: "#64748b" }}>Dimanche</div>}
+                      {item.isSunday && <div style={{ fontSize: 12, color: "var(--muted)" }}>Dimanche</div>}
                     </td>
                     <td>
                       <div>{item.liturgicalSeason || "—"}</div>
-                      <div style={{ fontSize: 12, color: "#64748b" }}>
+                      <div style={{ fontSize: 12, color: "var(--muted)" }}>
                         {item.liturgicalYear ? `Année ${item.liturgicalYear}` : ""}
                       </div>
                     </td>
@@ -285,7 +285,7 @@ export default function AdminLecturesPage() {
                       </div>
                     </td>
                     <td>
-                      <button type="button" className="nodafa-btn nodafa-btn-ghost" style={{ padding: "8px 12px", color: "#dc2626" }} onClick={() => remove(item.id)}>
+                      <button type="button" className="nodafa-btn nodafa-btn-ghost" style={{ padding: "8px 12px", color: "var(--danger)" }} onClick={() => remove(item.id)}>
                         Supprimer
                       </button>
                     </td>

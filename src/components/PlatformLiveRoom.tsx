@@ -395,7 +395,7 @@ const PlatformLiveRoom = forwardRef<PlatformLiveRoomHandle, Props>(function Plat
             inset: 0,
             display: "grid",
             placeItems: "center",
-            color: "#94a3b8",
+            color: "var(--muted)",
             background: "rgba(0,0,0,0.55)",
             padding: 20,
             textAlign: "center",
@@ -409,7 +409,7 @@ const PlatformLiveRoom = forwardRef<PlatformLiveRoomHandle, Props>(function Plat
         <div style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", padding: 24, background: "rgba(0,0,0,0.8)" }}>
           <div style={{ color: "#fecaca", textAlign: "center", maxWidth: 320 }}>
             {error}
-            <div style={{ marginTop: 10, fontSize: 13, color: "#94a3b8" }}>
+            <div style={{ marginTop: 10, fontSize: 13, color: "var(--muted)" }}>
               {isPublisher
                 ? "Sur téléphone : autorisez Caméra + Micro, puis utilisez « Caméra arrière »."
                 : "Attendez que le diffuseur démarre, puis rafraîchissez."}
@@ -446,7 +446,7 @@ const PlatformLiveRoom = forwardRef<PlatformLiveRoomHandle, Props>(function Plat
             👁 {viewers} spectateur{viewers > 1 ? "s" : ""}
           </span>
           {recStatus && (
-            <span style={{ ...ctrlBtn, cursor: "default", background: "#fee2e2", color: "#b91c1c" }}>{recStatus}</span>
+            <span style={{ ...ctrlBtn, cursor: "default", background: "#fee2e2", color: "var(--danger)" }}>{recStatus}</span>
           )}
         </div>
       )}
@@ -477,7 +477,7 @@ export default PlatformLiveRoom;
 const ctrlBtn: React.CSSProperties = {
   border: "none",
   background: "rgba(255,255,255,0.92)",
-  color: "#0f172a",
+  color: "var(--ink)",
   fontWeight: 800,
   fontSize: 13,
   padding: "10px 12px",

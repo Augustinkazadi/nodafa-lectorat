@@ -85,13 +85,13 @@ export default function CalendrierPage() {
                 style={{
                   display: "flex",
                   background: bg,
-                  color: darkText ? "#1e293b" : "white",
+                  color: darkText ? "var(--bg-soft)" : "white",
                   padding: "14px 16px",
                   borderRadius: 14,
                   alignItems: "center",
                   gap: 14,
                   flexWrap: "wrap",
-                  border: darkText ? "1px solid #e2e8f0" : "none",
+                  border: darkText ? "1px solid var(--line)" : "none",
                 }}
               >
                 <div
@@ -121,7 +121,7 @@ export default function CalendrierPage() {
             );
           })}
           {events.length === 0 && (
-            <div className="nodafa-card" style={{ padding: 24, textAlign: "center", color: "#64748b" }}>
+            <div className="nodafa-card" style={{ padding: 24, textAlign: "center", color: "var(--muted)" }}>
               Aucun événement liturgique pour le moment.
               {isAdmin && (
                 <div style={{ marginTop: 12 }}>

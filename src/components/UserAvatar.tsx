@@ -23,7 +23,7 @@ export default function UserAvatar({ src, name, size = 40, online = false, showS
             width: size,
             height: size,
             borderRadius: "50%",
-            background: "#1877f2",
+            background: "var(--link)",
             color: "#fff",
             display: "grid",
             placeItems: "center",
@@ -44,8 +44,8 @@ export default function UserAvatar({ src, name, size = 40, online = false, showS
             width: Math.max(10, size * 0.28),
             height: Math.max(10, size * 0.28),
             borderRadius: "50%",
-            background: online ? "#22c55e" : "#94a3b8",
-            border: "2px solid #fff",
+            background: online ? "var(--online)" : "var(--muted)",
+            border: "2px solid var(--bg-elevated)",
             boxSizing: "border-box",
           }}
         />

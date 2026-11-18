@@ -44,7 +44,7 @@ export default function DashboardPage() {
   return (
     <AdminShell>
       <h1 style={{ margin: "0 0 6px", fontFamily: "var(--font-display)", fontSize: 30 }}>Espace admin</h1>
-      <p style={{ margin: "0 0 18px", color: "#64748b" }}>
+      <p style={{ margin: "0 0 18px", color: "var(--muted)" }}>
         Annonces & PDF → Journal · Live → page Live · Calendrier liturgique → Calendrier seulement · Lectures auto AELF
       </p>
 
@@ -85,7 +85,7 @@ export default function DashboardPage() {
 
       <div className="admin-panel" style={{ marginTop: 16 }}>
         <h2 style={{ marginTop: 0 }}>Synchroniser les lectures du jour</h2>
-        <p style={{ color: "#64748b", marginTop: 0 }}>Récupère automatiquement 1ʳᵉ lecture, 2ᵉ lecture et Évangile (AELF).</p>
+        <p style={{ color: "var(--muted)", marginTop: 0 }}>Récupère automatiquement 1ʳᵉ lecture, 2ᵉ lecture et Évangile (AELF).</p>
         <button type="button" className="nodafa-btn nodafa-btn-primary" onClick={syncLectures}>
           Sync AELF maintenant
         </button>
@@ -96,7 +96,7 @@ export default function DashboardPage() {
         <div className="admin-panel">
           <h2 style={{ marginTop: 0 }}>Derniers membres</h2>
           {(stats?.recentUsers || []).length === 0 ? (
-            <p style={{ color: "#64748b" }}>Aucun membre</p>
+            <p style={{ color: "var(--muted)" }}>Aucun membre</p>
           ) : (
             <ul style={{ margin: 0, paddingLeft: 18 }}>
               {(stats?.recentUsers || []).map((u) => (
@@ -104,7 +104,7 @@ export default function DashboardPage() {
                   <strong>
                     {u.prenom} {u.nom}
                   </strong>{" "}
-                  <span style={{ color: "#64748b", fontSize: 13 }}>
+                  <span style={{ color: "var(--muted)", fontSize: 13 }}>
                     · {u.role} · {new Date(u.createdAt).toLocaleDateString("fr-FR")}
                   </span>
                 </li>
@@ -118,7 +118,7 @@ export default function DashboardPage() {
         <div className="admin-panel">
           <h2 style={{ marginTop: 0 }}>Dernières publications</h2>
           {(stats?.recentPosts || []).length === 0 ? (
-            <p style={{ color: "#64748b" }}>Aucune publication</p>
+            <p style={{ color: "var(--muted)" }}>Aucune publication</p>
           ) : (
             <ul style={{ margin: 0, paddingLeft: 18 }}>
               {(stats?.recentPosts || []).map((p) => (
@@ -126,7 +126,7 @@ export default function DashboardPage() {
                   <strong>
                     {p.author?.prenom} {p.author?.nom}
                   </strong>
-                  <div style={{ color: "#64748b", fontSize: 13 }}>
+                  <div style={{ color: "var(--muted)", fontSize: 13 }}>
                     {(p.content || "").slice(0, 80)}
                     {(p.content || "").length > 80 ? "…" : ""}
                   </div>
@@ -201,9 +201,9 @@ function StatCard({
         background: accent ? "#fff7f7" : undefined,
       }}
     >
-      <div style={{ fontSize: 12, color: "#64748b", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.04em" }}>{label}</div>
+      <div style={{ fontSize: 12, color: "var(--muted)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.04em" }}>{label}</div>
       <div style={{ fontSize: 28, fontWeight: 800, marginTop: 6 }}>{value}</div>
-      {hint && <div style={{ fontSize: 12, color: accent ? "#dc2626" : "#94a3b8", marginTop: 4 }}>{hint}</div>}
+      {hint && <div style={{ fontSize: 12, color: accent ? "var(--danger)" : "var(--muted)", marginTop: 4 }}>{hint}</div>}
     </div>
   );
   return href ? (
@@ -224,7 +224,7 @@ function ActionCard({ href, icon, title, text }: { href: string; icon: string; t
     >
       <div style={{ fontSize: 22, marginBottom: 6 }}>{icon}</div>
       <strong style={{ display: "block", marginBottom: 4 }}>{title}</strong>
-      <span style={{ color: "#64748b", fontSize: 13, lineHeight: 1.4 }}>{text}</span>
+      <span style={{ color: "var(--muted)", fontSize: 13, lineHeight: 1.4 }}>{text}</span>
     </Link>
   );
 }

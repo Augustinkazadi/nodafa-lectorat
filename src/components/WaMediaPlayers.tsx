@@ -57,7 +57,7 @@ export function WaAudioPlayer({ src, mine = false }: { src: string; mine?: boole
     return `${m}:${String(sec).padStart(2, "0")}`;
   };
 
-  const accent = mine ? "#ffffff" : "#00a884";
+  const accent = mine ? "#ffffff" : "var(--wa-accent)";
   const track = mine ? "rgba(255,255,255,0.28)" : "rgba(0,168,132,0.25)";
 
   return (

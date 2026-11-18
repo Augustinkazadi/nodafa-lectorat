@@ -4,13 +4,23 @@
 html[data-theme="light"] {
   --bg: #f4f7fb;
   --bg-elevated: #ffffff;
+  --bg-soft: #f0f2f5;
+  --bg-soft-2: #f7f8fa;
   --ink: #0f172a;
+  --ink-strong: #1c1e21;
   --muted: #64748b;
+  --muted-2: #65676b;
   --line: #e2e8f0;
+  --line-2: #e4e6eb;
+  --line-3: #ccd0d5;
   --brand: #1e3a8a;
   --brand-soft: #dbeafe;
+  --link: #1877f2;
+  --link-soft: #e7f3ff;
   --accent: #c9a227;
   --danger: #dc2626;
+  --success: #16a34a;
+  --online: #22c55e;
   --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
   --radius: 18px;
   --font-sans: "Manrope", "Segoe UI", sans-serif;
@@ -26,18 +36,34 @@ html[data-theme="light"] {
   --wa-bubble-out: #d9fdd3;
   --wa-accent: #00a884;
   --wa-input: #ffffff;
+  --wa-on-accent: #111b21;
+  --wa-danger: #f15c6d;
+  --wa-date: #182229;
+  --live-panel: #111827;
+  --live-line: #1f2937;
+  --live-ink: #f8fafc;
 }
 
 html[data-theme="dark"] {
   --bg: #0b1220;
   --bg-elevated: #111827;
+  --bg-soft: #1e293b;
+  --bg-soft-2: #1f2937;
   --ink: #e5e7eb;
+  --ink-strong: #f8fafc;
   --muted: #94a3b8;
+  --muted-2: #94a3b8;
   --line: #1f2937;
+  --line-2: #334155;
+  --line-3: #475569;
   --brand: #60a5fa;
   --brand-soft: #1e3a5f;
+  --link: #60a5fa;
+  --link-soft: #1e3a5f;
   --accent: #eab308;
   --danger: #f87171;
+  --success: #4ade80;
+  --online: #22c55e;
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
   --wa-bg: #0b141a;
   --wa-shell: #111b21;
@@ -50,6 +76,12 @@ html[data-theme="dark"] {
   --wa-bubble-out: #005c4b;
   --wa-accent: #00a884;
   --wa-input: #2a3942;
+  --wa-on-accent: #111b21;
+  --wa-danger: #f15c6d;
+  --wa-date: #182229;
+  --live-panel: #111827;
+  --live-line: #1f2937;
+  --live-ink: #f8fafc;
 }
 
 html[data-theme="dark"] body {
@@ -854,6 +886,28 @@ html[data-theme="dark"] .admin-stat span {
 html[data-theme="dark"] .admin-chip--admin {
   background: #1e3a5f;
   color: #93c5fd;
+}
+
+html[data-theme="dark"] .admin-chip--ok {
+  background: color-mix(in srgb, var(--success) 22%, var(--bg-elevated));
+  color: var(--success);
+}
+
+html[data-theme="dark"] .admin-chip--off {
+  background: color-mix(in srgb, var(--danger) 22%, var(--bg-elevated));
+  color: var(--danger);
+}
+
+html[data-theme="dark"] .nodafa-btn-ghost {
+  color: var(--ink);
+  border-color: var(--line);
+}
+
+html[data-theme="dark"] table,
+html[data-theme="dark"] th,
+html[data-theme="dark"] td {
+  border-color: var(--line);
+  color: var(--ink);
 }
 
 html[data-theme="dark"] .messages-page {

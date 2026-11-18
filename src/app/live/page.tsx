@@ -156,7 +156,7 @@ export default function LivePage() {
   const watchingReplay = !active && replayId ? lives.find((l) => l.id === replayId) : null;
 
   return (
-    <div style={{ minHeight: "100vh", background: "#0b1220", color: "#f8fafc" }}>
+    <div style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--ink)" }}>
       <AppNavbar
         userName={session?.user?.name}
         userPhoto={session?.user?.image}
@@ -170,7 +170,7 @@ export default function LivePage() {
         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "flex-start", flexWrap: "wrap", marginBottom: 16 }}>
           <div>
             <h1 style={{ margin: 0, fontFamily: "var(--font-display)", fontSize: 30 }}>Événements en direct</h1>
-            <p style={{ margin: "6px 0 0", color: "#94a3b8", maxWidth: 560, lineHeight: 1.45 }}>
+            <p style={{ margin: "6px 0 0", color: "var(--muted)", maxWidth: 560, lineHeight: 1.45 }}>
               Fêtes, excursions, journées d’amitié… Aimez, commentez, et revoyez les rediffusions si vous avez raté le direct.
             </p>
           </div>
@@ -205,7 +205,7 @@ export default function LivePage() {
                 <span style={typeBadge}>{liveEventLabel(active.eventType)}</span>
               </div>
               <strong style={{ fontSize: 18, display: "block" }}>{active.title}</strong>
-              {active.description && <p style={{ margin: "8px 0 0", color: "#94a3b8", fontSize: 14 }}>{active.description}</p>}
+              {active.description && <p style={{ margin: "8px 0 0", color: "var(--muted)", fontSize: 14 }}>{active.description}</p>}
             </div>
             <div style={{ padding: "0 8px 8px" }}>
               <PlatformLiveRoom
@@ -232,7 +232,7 @@ export default function LivePage() {
             <div style={{ padding: "12px 16px", display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
               <div>
                 <div style={{ display: "flex", gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
-                  <span style={{ ...liveBadge, background: "#334155" }}>REDIF</span>
+                  <span style={{ ...liveBadge, background: "var(--line-2)" }}>REDIF</span>
                   <span style={typeBadge}>{liveEventLabel(watchingReplay.eventType)}</span>
                 </div>
                 <strong style={{ fontSize: 18 }}>{watchingReplay.title}</strong>
@@ -260,10 +260,10 @@ export default function LivePage() {
             />
           </section>
         ) : (
-          <section style={{ background: "#111827", borderRadius: 16, padding: 28, textAlign: "center", border: "1px solid #1f2937" }}>
+          <section style={{ background: "var(--bg-elevated)", color: "var(--ink)", borderRadius: 16, padding: 28, textAlign: "center", border: "1px solid var(--line)" }}>
             <div style={{ fontSize: 42, marginBottom: 10 }}>🎉</div>
             <h2 style={{ margin: "0 0 8px", fontSize: 22 }}>Aucune diffusion en cours</h2>
-            <p style={{ margin: 0, color: "#94a3b8", lineHeight: 1.5 }}>
+            <p style={{ margin: 0, color: "var(--muted)", lineHeight: 1.5 }}>
               Choisissez une rediffusion ci-dessous, ou attendez le prochain événement en direct.
             </p>
             {isAdmin && (
@@ -283,7 +283,7 @@ export default function LivePage() {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 12, color: "#fca5a5", marginBottom: 4 }}>{liveEventLabel(live.eventType)}</div>
                     <div style={{ fontWeight: 700 }}>{live.title}</div>
-                    <div style={{ color: "#94a3b8", fontSize: 13, marginTop: 2 }}>
+                    <div style={{ color: "var(--muted)", fontSize: 13, marginTop: 2 }}>
                       {new Date(live.createdAt).toLocaleString("fr-FR")} · 👍 {live.likesCount || 0} · 💬 {live.commentsCount || 0}
                     </div>
                   </div>
@@ -303,7 +303,7 @@ export default function LivePage() {
                         ▶ Revoir
                       </button>
                     ) : (
-                      <span style={{ color: "#64748b", fontSize: 12 }}>Pas encore de vidéo</span>
+                      <span style={{ color: "var(--muted)", fontSize: 12 }}>Pas encore de vidéo</span>
                     )}
                   </div>
                 </div>
@@ -317,7 +317,7 @@ export default function LivePage() {
         <div role="dialog" aria-modal="true" onClick={() => !launching && setShowForm(false)} style={modalOverlay}>
           <form onClick={(e) => e.stopPropagation()} onSubmit={startLive} style={modalCard}>
             <h3 style={{ margin: "0 0 6px", fontFamily: "var(--font-display)" }}>Diffuser un événement</h3>
-            <p style={{ margin: "0 0 14px", color: "#94a3b8", fontSize: 13 }}>
+            <p style={{ margin: "0 0 14px", color: "var(--muted)", fontSize: 13 }}>
               La vidéo sera enregistrée pour la rediffusion. Les membres pourront aimer et commenter.
             </p>
             <label style={labelStyle}>Type d’événement</label>
@@ -365,9 +365,9 @@ function LiveSocial({
   userName: string;
 }) {
   return (
-    <div style={{ padding: "12px 16px 16px", borderTop: "1px solid #1f2937" }}>
+    <div style={{ padding: "12px 16px 16px", borderTop: "1px solid var(--live-line)" }}>
       <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
-        <button type="button" onClick={onLike} style={{ ...ghostBtn, color: live.likedByMe ? "#60a5fa" : "#e2e8f0" }}>
+        <button type="button" onClick={onLike} style={{ ...ghostBtn, color: live.likedByMe ? "var(--link)" : "var(--ink)" }}>
           {live.likedByMe ? "💙" : "👍"} {live.likesCount || 0} J’aime
         </button>
         <span style={{ ...ghostBtn, cursor: "default" }}>💬 {live.commentsCount || live.comments?.length || 0}</span>
@@ -382,9 +382,9 @@ function LiveSocial({
           placeholder="Écrire un commentaire sur l’événement…"
           style={{
             flex: 1,
-            border: "1px solid #334155",
-            background: "#0b1220",
-            color: "#f8fafc",
+            border: "1px solid var(--line-2)",
+            background: "var(--bg-elevated)",
+            color: "var(--ink)",
             borderRadius: 18,
             padding: "8px 14px",
             outline: "none",
@@ -396,16 +396,16 @@ function LiveSocial({
       </div>
 
       <div style={{ display: "grid", gap: 8, maxHeight: 240, overflowY: "auto" }}>
-        {(live.comments || []).length === 0 && <div style={{ color: "#64748b", fontSize: 13 }}>Soyez le premier à commenter.</div>}
+        {(live.comments || []).length === 0 && <div style={{ color: "var(--muted)", fontSize: 13 }}>Soyez le premier à commenter.</div>}
         {(live.comments || []).map((c) => (
           <div key={c.id} style={{ display: "flex", gap: 8 }}>
             <Avatar src={c.user?.photo} name={c.user?.prenom || "U"} size={28} />
-            <div style={{ background: "#1e293b", borderRadius: 12, padding: "8px 10px", flex: 1 }}>
+            <div style={{ background: "var(--bg-soft)", borderRadius: 12, padding: "8px 10px", flex: 1 }}>
               <strong style={{ fontSize: 13 }}>
                 {c.user?.prenom} {c.user?.nom}
               </strong>
               <div style={{ fontSize: 14, marginTop: 2 }}>{c.content}</div>
-              <div style={{ fontSize: 11, color: "#64748b", marginTop: 4 }}>{new Date(c.createdAt).toLocaleString("fr-FR")}</div>
+              <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 4 }}>{new Date(c.createdAt).toLocaleString("fr-FR")}</div>
             </div>
           </div>
         ))}
@@ -422,7 +422,7 @@ function Avatar({ src, name, size }: { src?: string | null; name: string; size: 
         width: size,
         height: size,
         borderRadius: "50%",
-        background: "#1877f2",
+        background: "var(--link)",
         color: "#fff",
         display: "grid",
         placeItems: "center",
@@ -437,7 +437,7 @@ function Avatar({ src, name, size }: { src?: string | null; name: string; size: 
 }
 
 const playerCard: React.CSSProperties = {
-  background: "#111827",
+  background: "var(--live-panel)",
   borderRadius: 16,
   overflow: "hidden",
   border: "1px solid rgba(248,113,113,0.35)",
@@ -447,8 +447,9 @@ const playerCard: React.CSSProperties = {
 const pastCard: React.CSSProperties = {
   padding: "12px 14px",
   borderRadius: 12,
-  background: "#111827",
-  border: "1px solid #1f2937",
+  background: "var(--bg-elevated)",
+  border: "1px solid var(--line)",
+  color: "var(--ink)",
   display: "flex",
   justifyContent: "space-between",
   gap: 10,
@@ -457,7 +458,7 @@ const pastCard: React.CSSProperties = {
 };
 
 const liveBadge: React.CSSProperties = {
-  background: "#dc2626",
+  background: "var(--danger)",
   color: "#fff",
   fontWeight: 800,
   fontSize: 11,
@@ -467,8 +468,8 @@ const liveBadge: React.CSSProperties = {
 };
 
 const typeBadge: React.CSSProperties = {
-  background: "#1e293b",
-  color: "#e2e8f0",
+  background: "var(--bg-soft)",
+  color: "var(--ink)",
   fontWeight: 700,
   fontSize: 12,
   padding: "3px 8px",
@@ -477,7 +478,7 @@ const typeBadge: React.CSSProperties = {
 
 const dangerBtn: React.CSSProperties = {
   border: "none",
-  background: "#dc2626",
+  background: "var(--danger)",
   color: "#fff",
   fontWeight: 700,
   padding: "10px 14px",
@@ -487,9 +488,9 @@ const dangerBtn: React.CSSProperties = {
 };
 
 const ghostBtn: React.CSSProperties = {
-  border: "1px solid #334155",
+  border: "1px solid var(--line-2)",
   background: "transparent",
-  color: "#e2e8f0",
+  color: "var(--ink)",
   fontWeight: 700,
   padding: "10px 14px",
   borderRadius: 10,
@@ -501,7 +502,7 @@ const labelStyle: React.CSSProperties = {
   display: "block",
   fontSize: 12,
   fontWeight: 700,
-  color: "#94a3b8",
+  color: "var(--muted)",
   marginBottom: 6,
   marginTop: 10,
 };
@@ -510,9 +511,9 @@ const inputStyle: React.CSSProperties = {
   width: "100%",
   padding: "10px 12px",
   borderRadius: 10,
-  border: "1px solid #334155",
-  background: "#0b1220",
-  color: "#f8fafc",
+  border: "1px solid var(--line-2)",
+  background: "var(--bg-elevated)",
+  color: "var(--ink)",
   font: "inherit",
   boxSizing: "border-box",
 };
@@ -529,8 +530,9 @@ const modalOverlay: React.CSSProperties = {
 
 const modalCard: React.CSSProperties = {
   width: "min(440px, 100%)",
-  background: "#111827",
+  background: "var(--bg-elevated)",
+  color: "var(--ink)",
   borderRadius: 16,
   padding: 20,
-  border: "1px solid #334155",
+  border: "1px solid var(--line)",
 };

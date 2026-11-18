@@ -76,7 +76,7 @@ export default function AdminMembresPage() {
   return (
     <AdminShell>
       <h1 style={{ margin: "0 0 8px", fontFamily: "var(--font-display)", fontSize: 30 }}>Membres</h1>
-      <p style={{ margin: "0 0 16px", color: "#64748b" }}>
+      <p style={{ margin: "0 0 16px", color: "var(--muted)" }}>
         Gérez les rôles (Admin, Lecteur, Visiteur) et l&apos;accès des membres.
       </p>
 
@@ -85,7 +85,7 @@ export default function AdminMembresPage() {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Rechercher un membre (nom, email)..."
-          style={{ width: "100%", padding: "12px 14px", borderRadius: 12, border: "1px solid #cbd5e1", marginBottom: 12 }}
+          style={{ width: "100%", padding: "12px 14px", borderRadius: 12, border: "1px solid var(--line)", marginBottom: 12 }}
         />
         {status && <p style={{ fontWeight: 700 }}>{status}</p>}
 
@@ -113,13 +113,13 @@ export default function AdminMembresPage() {
                         <strong>
                           {u.prenom} {u.nom}
                         </strong>
-                        <div style={{ color: "#64748b", fontSize: 12 }}>
+                        <div style={{ color: "var(--muted)", fontSize: 12 }}>
                           {u.dateNaissance ? `Né(e) le ${new Date(u.dateNaissance).toLocaleDateString("fr-FR")}` : "—"}
                         </div>
                       </td>
                       <td>
                         <div>{u.email}</div>
-                        <div style={{ color: "#64748b", fontSize: 12 }}>{u.telephone || "Pas de téléphone"}</div>
+                        <div style={{ color: "var(--muted)", fontSize: 12 }}>{u.telephone || "Pas de téléphone"}</div>
                       </td>
                       <td>
                         <select
@@ -130,8 +130,8 @@ export default function AdminMembresPage() {
                           style={{
                             padding: "8px 10px",
                             borderRadius: 8,
-                            border: "1px solid #cbd5e1",
-                            background: "#fff",
+                            border: "1px solid var(--line)",
+                            background: "var(--bg-elevated)",
                             minWidth: 120,
                           }}
                         >

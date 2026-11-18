@@ -63,7 +63,7 @@ export default function HomePage() {
                 display: "block",
                 boxShadow: "0 18px 50px rgba(0,0,0,0.35)",
                 border: "3px solid rgba(255,255,255,0.35)",
-                background: "#fff",
+                background: "var(--bg-elevated)",
               }}
             />
             <p className="nodafa-rise" style={{ letterSpacing: "0.18em", textTransform: "uppercase", fontSize: 12, opacity: 0.85, marginBottom: 14 }}>

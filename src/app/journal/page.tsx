@@ -420,7 +420,7 @@ export default function JournalPage() {
 
   if (status === "loading" || loading) {
     return (
-      <div style={{ textAlign: "center", padding: "50px", fontFamily: "Helvetica Neue, Arial, sans-serif", color: "#65676b" }}>
+      <div style={{ textAlign: "center", padding: "50px", fontFamily: "Helvetica Neue, Arial, sans-serif", color: "var(--muted-2)" }}>
         Chargement du journal...
       </div>
     );
@@ -459,11 +459,11 @@ export default function JournalPage() {
               style={{
                 flex: 1,
                 textAlign: "left",
-                background: "#f0f2f5",
+                background: "var(--bg-soft)",
                 border: "none",
                 borderRadius: 50,
                 padding: "12px 16px",
-                color: "#65676b",
+                color: "var(--muted-2)",
                 fontSize: 16,
                 cursor: "pointer",
               }}
@@ -471,7 +471,7 @@ export default function JournalPage() {
               Quoi de neuf, {firstName} ?
             </button>
           </div>
-          <div style={{ borderTop: "1px solid #e4e6eb", paddingTop: 10, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6 }}>
+          <div style={{ borderTop: "1px solid var(--line-2)", paddingTop: 10, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6 }}>
             <ComposerAction label="Photos" color="#45bd62" onClick={() => openFilePicker("image/*", "image")} />
             <ComposerAction label="Vidéo" color="#f02849" onClick={() => openFilePicker("video/*", "video")} />
             <ComposerAction label="PDF / Fichier" color="#f7b928" onClick={() => openFilePicker("application/pdf,.pdf", "pdf")} />
@@ -500,7 +500,7 @@ export default function JournalPage() {
                 <Avatar src={profilePhoto} name={session?.user?.name || "U"} size={40} />
                 <div>
                   <div style={{ fontWeight: 600 }}>{session?.user?.name}</div>
-                  <div style={{ fontSize: 12, color: "#65676b" }}>Visible par tout le lectorat</div>
+                  <div style={{ fontSize: 12, color: "var(--muted-2)" }}>Visible par tout le lectorat</div>
                 </div>
               </div>
               <textarea
@@ -524,7 +524,7 @@ export default function JournalPage() {
                 <div style={{ marginBottom: 12 }}>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(96px, 1fr))", gap: 8 }}>
                     {mediaItems.map((item, i) => (
-                      <div key={item.url} style={{ position: "relative", borderRadius: 8, overflow: "hidden", border: "1px solid #e4e6eb", aspectRatio: "1" }}>
+                      <div key={item.url} style={{ position: "relative", borderRadius: 8, overflow: "hidden", border: "1px solid var(--line-2)", aspectRatio: "1" }}>
                         <img src={item.url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
                         <button
                           type="button"
@@ -540,12 +540,12 @@ export default function JournalPage() {
                         type="button"
                         onClick={() => openFilePicker("image/*", "image")}
                         style={{
-                          border: "1px dashed #ccd0d5",
+                          border: "1px dashed var(--line-3)",
                           borderRadius: 8,
-                          background: "#f7f8fa",
+                          background: "var(--bg-soft-2)",
                           cursor: "pointer",
                           fontWeight: 700,
-                          color: "#65676b",
+                          color: "var(--muted-2)",
                           minHeight: 96,
                         }}
                       >
@@ -553,14 +553,14 @@ export default function JournalPage() {
                       </button>
                     )}
                   </div>
-                  <div style={{ marginTop: 8, fontSize: 12, color: "#65676b" }}>
+                  <div style={{ marginTop: 8, fontSize: 12, color: "var(--muted-2)" }}>
                     {mediaItems.length}/{MAX_POST_PHOTOS} photos
                   </div>
                 </div>
               )}
 
               {mediaItems.length === 1 && mediaItems[0].kind !== "IMAGE" && (
-                <div style={{ position: "relative", marginBottom: 12, border: "1px solid #e4e6eb", borderRadius: 8, overflow: "hidden" }}>
+                <div style={{ position: "relative", marginBottom: 12, border: "1px solid var(--line-2)", borderRadius: 8, overflow: "hidden" }}>
                   <button type="button" onClick={clearMedia} style={{ ...iconBtn, position: "absolute", top: 8, right: 8, zIndex: 2, background: "rgba(0,0,0,0.65)", color: "#fff" }}>
                     ✕
                   </button>
@@ -568,18 +568,18 @@ export default function JournalPage() {
                     <video src={mediaItems[0].url} controls style={{ width: "100%", maxHeight: 360, display: "block", background: "#000" }} />
                   )}
                   {mediaItems[0].kind === "PDF" && (
-                    <div style={{ padding: 20, background: "#f7f8fa", display: "flex", alignItems: "center", gap: 12 }}>
+                    <div style={{ padding: 20, background: "var(--bg-soft-2)", display: "flex", alignItems: "center", gap: 12 }}>
                       <div style={{ fontSize: 32 }}>📄</div>
                       <div>
                         <div style={{ fontWeight: 700 }}>{mediaItems[0].file.name}</div>
-                        <div style={{ fontSize: 13, color: "#65676b" }}>Document PDF prêt à publier</div>
+                        <div style={{ fontSize: 13, color: "var(--muted-2)" }}>Document PDF prêt à publier</div>
                       </div>
                     </div>
                   )}
                 </div>
               )}
 
-              <div style={{ border: "1px solid #ccd0d5", borderRadius: 8, padding: "10px 12px", display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+              <div style={{ border: "1px solid var(--line-3)", borderRadius: 8, padding: "10px 12px", display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
                 <span style={{ fontWeight: 600, fontSize: 14 }}>Ajouter à votre publication</span>
                 <div style={{ display: "flex", gap: 8 }}>
                   <button type="button" onClick={() => openFilePicker("image/*", "image")} style={miniMediaBtn} title="Photos">
@@ -605,7 +605,7 @@ export default function JournalPage() {
                   fontWeight: 700,
                   fontSize: 15,
                   cursor: publishing || (!newPostContent.trim() && mediaItems.length === 0) ? "not-allowed" : "pointer",
-                  background: newPostContent.trim() || mediaItems.length ? "#1877f2" : "#e4e6eb",
+                  background: newPostContent.trim() || mediaItems.length ? "var(--link)" : "var(--line-2)",
                   color: newPostContent.trim() || mediaItems.length ? "#fff" : "#bcc0c4",
                 }}
               >
@@ -616,7 +616,7 @@ export default function JournalPage() {
         )}
 
         {filteredPosts.length === 0 && (
-          <p style={{ textAlign: "center", color: "#65676b", marginTop: 40 }}>Aucune publication pour le moment.</p>
+          <p style={{ textAlign: "center", color: "var(--muted-2)", marginTop: 40 }}>Aucune publication pour le moment.</p>
         )}
 
         {filteredPosts.map((post: any) => {
@@ -639,7 +639,7 @@ export default function JournalPage() {
                 marginTop: 16,
                 overflow: "hidden",
                 scrollMarginTop: 88,
-                outline: isHighlighted ? "2px solid #1877f2" : undefined,
+                outline: isHighlighted ? "2px solid var(--link)" : undefined,
                 boxShadow: isHighlighted ? "0 0 0 4px rgba(24,119,242,0.22)" : cardStyle.boxShadow,
                 transition: "box-shadow 0.3s ease, outline 0.3s ease",
               }}
@@ -659,7 +659,7 @@ export default function JournalPage() {
                         <div style={{ fontWeight: 600, fontSize: 15 }}>
                           {post.author?.prenom} {post.author?.nom}
                         </div>
-                        <div style={{ color: "#65676b", fontSize: 13 }}>
+                        <div style={{ color: "var(--muted-2)", fontSize: 13 }}>
                           {formatDateTime(post.createdAt)} · {isAuthorOnline(post.author?.lastSeenAt) ? "En ligne" : "Public"}
                         </div>
                       </div>
@@ -670,11 +670,11 @@ export default function JournalPage() {
                       <div>
                         <div style={{ fontWeight: 600, fontSize: 15 }}>
                           {post.author?.prenom} {post.author?.nom}
-                          <span style={{ color: isLive ? "#f02849" : "#1877f2", marginLeft: 6, fontSize: 13 }}>
+                          <span style={{ color: isLive ? "#f02849" : "var(--link)", marginLeft: 6, fontSize: 13 }}>
                             {isLive ? "EN DIRECT" : "Officiel"}
                           </span>
                         </div>
-                        <div style={{ color: "#65676b", fontSize: 13 }}>{formatDateTime(post.createdAt)} · Public</div>
+                        <div style={{ color: "var(--muted-2)", fontSize: 13 }}>{formatDateTime(post.createdAt)} · Public</div>
                       </div>
                     </>
                   )}
@@ -684,7 +684,7 @@ export default function JournalPage() {
                     <button
                       type="button"
                       onClick={() => setMenuPostId(menuPostId === post.id ? null : post.id)}
-                      style={{ ...iconBtn, color: "#050505", fontSize: 20, lineHeight: 1 }}
+                      style={{ ...iconBtn, color: "var(--ink)", fontSize: 20, lineHeight: 1 }}
                       title="Options"
                     >
                       ⋯
@@ -695,8 +695,8 @@ export default function JournalPage() {
                           position: "absolute",
                           right: 0,
                           top: 40,
-                          background: "#fff",
-                          border: "1px solid #e4e6eb",
+                          background: "var(--bg-elevated)",
+                          border: "1px solid var(--line-2)",
                           borderRadius: 12,
                           boxShadow: "0 10px 30px rgba(15,23,42,0.12)",
                           minWidth: 180,
@@ -723,7 +723,7 @@ export default function JournalPage() {
                               setMenuPostId(null);
                               handleDeletePost(post.id);
                             }}
-                            style={{ ...menuItemStyle, color: "#dc2626" }}
+                            style={{ ...menuItemStyle, color: "var(--danger)" }}
                           >
                             Supprimer
                           </button>
@@ -747,7 +747,7 @@ export default function JournalPage() {
                     emptyLabel="Pas de 2ᵉ lecture aujourd’hui (messe de semaine)"
                   />
                   <ReadingSection title="Évangile" text={post.gospel} accent emptyLabel="Évangile non disponible" />
-                  <a href="/lecture-du-jour" style={{ color: "#1d4ed8", fontWeight: 700, fontSize: 13, textDecoration: "none" }}>
+                  <a href="/lecture-du-jour" style={{ color: "var(--brand)", fontWeight: 700, fontSize: 13, textDecoration: "none" }}>
                     Lire les textes complets →
                   </a>
                 </div>
@@ -765,20 +765,20 @@ export default function JournalPage() {
               )}
 
               {mediaUrl && mediaType === "PDF" && (
-                <div style={{ margin: "0 16px 12px", border: "1px solid #e4e6eb", borderRadius: 8, overflow: "hidden" }}>
-                  <div style={{ padding: 14, background: "#f7f8fa", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
+                <div style={{ margin: "0 16px 12px", border: "1px solid var(--line-2)", borderRadius: 8, overflow: "hidden" }}>
+                  <div style={{ padding: 14, background: "var(--bg-soft-2)", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
                     <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
                       <span style={{ fontSize: 28 }}>📄</span>
                       <div>
                         <div style={{ fontWeight: 700 }}>{post.mediaName || "Document PDF"}</div>
-                        <div style={{ fontSize: 12, color: "#65676b" }}>Fichier partagé avec le lectorat</div>
+                        <div style={{ fontSize: 12, color: "var(--muted-2)" }}>Fichier partagé avec le lectorat</div>
                       </div>
                     </div>
-                    <a href={mediaUrl} target="_blank" rel="noreferrer" style={{ color: "#1877f2", fontWeight: 700, textDecoration: "none" }}>
+                    <a href={mediaUrl} target="_blank" rel="noreferrer" style={{ color: "var(--link)", fontWeight: 700, textDecoration: "none" }}>
                       Ouvrir
                     </a>
                   </div>
-                  <iframe src={mediaUrl} title={post.mediaName || "PDF"} style={{ width: "100%", height: 360, border: "none", background: "#fff" }} />
+                  <iframe src={mediaUrl} title={post.mediaName || "PDF"} style={{ width: "100%", height: 360, border: "none", background: "var(--bg-elevated)" }} />
                 </div>
               )}
 
@@ -790,7 +790,7 @@ export default function JournalPage() {
                       style={{
                         display: "block",
                         textAlign: "center",
-                        background: "#dc2626",
+                        background: "var(--danger)",
                         color: "#fff",
                         fontWeight: 800,
                         padding: "14px 16px",
@@ -806,7 +806,7 @@ export default function JournalPage() {
                       style={{
                         display: "block",
                         textAlign: "center",
-                        background: "#1d4ed8",
+                        background: "var(--brand)",
                         color: "#fff",
                         fontWeight: 800,
                         padding: "14px 16px",
@@ -817,7 +817,7 @@ export default function JournalPage() {
                       ▶ Voir la rediffusion
                     </a>
                   ) : (
-                    <div style={{ padding: 12, background: "#f8fafc", borderRadius: 12, color: "#64748b", fontSize: 14 }}>
+                    <div style={{ padding: 12, background: "var(--bg-soft-2)", borderRadius: 12, color: "var(--muted)", fontSize: 14 }}>
                       Diffusion terminée
                     </div>
                   )}
@@ -831,9 +831,9 @@ export default function JournalPage() {
                       padding: "10px 16px",
                       display: "flex",
                       justifyContent: "space-between",
-                      color: "#65676b",
+                      color: "var(--muted-2)",
                       fontSize: 15,
-                      borderBottom: "1px solid #e4e6eb",
+                      borderBottom: "1px solid var(--line-2)",
                     }}
                   >
                     <button
@@ -842,7 +842,7 @@ export default function JournalPage() {
                       style={{
                         ...textBtn,
                         fontSize: 15,
-                        color: hasLiked ? "#1877f2" : "#65676b",
+                        color: hasLiked ? "var(--link)" : "var(--muted-2)",
                         cursor: (post.likes?.length || 0) > 0 ? "pointer" : "default",
                       }}
                       disabled={(post.likes?.length || 0) === 0}
@@ -857,13 +857,13 @@ export default function JournalPage() {
                         setReplyToCommentId(null);
                         setReplyToName("");
                       }}
-                      style={{ ...textBtn, fontSize: 15, color: "#65676b" }}
+                      style={{ ...textBtn, fontSize: 15, color: "var(--muted-2)" }}
                     >
                       {post.comments?.length || 0} commentaires
                     </button>
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", padding: "4px 8px", borderBottom: activeCommentPostId === post.id ? "1px solid #e4e6eb" : "none" }}>
-                    <button onClick={() => handleLike(post.id)} style={{ ...actionBtn, color: hasLiked ? "#1877f2" : "#65676b" }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", padding: "4px 8px", borderBottom: activeCommentPostId === post.id ? "1px solid var(--line-2)" : "none" }}>
+                    <button onClick={() => handleLike(post.id)} style={{ ...actionBtn, color: hasLiked ? "var(--link)" : "var(--muted-2)" }}>
                       👍 J&apos;aime
                     </button>
                     <button
@@ -872,7 +872,7 @@ export default function JournalPage() {
                         setReplyToCommentId(null);
                         setReplyToName("");
                       }}
-                      style={{ ...actionBtn, color: activeCommentPostId === post.id ? "#1877f2" : "#65676b" }}
+                      style={{ ...actionBtn, color: activeCommentPostId === post.id ? "var(--link)" : "var(--muted-2)" }}
                     >
                       💬 Commentaires
                     </button>
@@ -882,7 +882,7 @@ export default function JournalPage() {
                   </div>
 
                   {activeCommentPostId === post.id && (
-                    <div style={{ padding: "12px 16px calc(28px + env(safe-area-inset-bottom))", background: "#fff" }}>
+                    <div style={{ padding: "12px 16px calc(28px + env(safe-area-inset-bottom))", background: "var(--bg-elevated)" }}>
                       {!replyToCommentId && (
                         <form
                           onSubmit={(e) => handleCommentSubmit(e, post.id)}
@@ -891,7 +891,7 @@ export default function JournalPage() {
                             position: "sticky",
                             bottom: 72,
                             zIndex: 40,
-                            background: "#fff",
+                            background: "var(--bg-elevated)",
                             padding: "8px 0",
                           }}
                         >
@@ -906,8 +906,8 @@ export default function JournalPage() {
                                 flex: 1,
                                 padding: "10px 14px",
                                 borderRadius: 18,
-                                border: "1px solid #e4e6eb",
-                                background: "#f0f2f5",
+                                border: "1px solid var(--line-2)",
+                                background: "var(--bg-soft)",
                                 outline: "none",
                                 fontSize: 16,
                                 minWidth: 0,
@@ -918,8 +918,8 @@ export default function JournalPage() {
                               disabled={!commentText.trim()}
                               style={{
                                 border: "none",
-                                background: commentText.trim() ? "#1877f2" : "#e4e6eb",
-                                color: commentText.trim() ? "#fff" : "#65676b",
+                                background: commentText.trim() ? "var(--link)" : "var(--line-2)",
+                                color: commentText.trim() ? "#fff" : "var(--muted-2)",
                                 fontWeight: 800,
                                 cursor: commentText.trim() ? "pointer" : "default",
                                 borderRadius: 16,
@@ -935,7 +935,7 @@ export default function JournalPage() {
                       )}
 
                       {(post.comments?.length || 0) === 0 && (
-                        <p style={{ color: "#65676b", fontSize: 14, margin: "0 0 8px" }}>Aucun commentaire pour le moment.</p>
+                        <p style={{ color: "var(--muted-2)", fontSize: 14, margin: "0 0 8px" }}>Aucun commentaire pour le moment.</p>
                       )}
 
                       {groupComments(post.comments || []).map(({ comment, replies }) => (
@@ -1050,7 +1050,7 @@ export default function JournalPage() {
               width: "100%",
               maxWidth: 420,
               maxHeight: "70vh",
-              background: "#fff",
+              background: "var(--bg-elevated)",
               borderRadius: 16,
               overflow: "hidden",
               boxShadow: "0 12px 40px rgba(0,0,0,0.25)",
@@ -1059,7 +1059,7 @@ export default function JournalPage() {
             <div
               style={{
                 padding: "14px 16px",
-                borderBottom: "1px solid #e4e6eb",
+                borderBottom: "1px solid var(--line-2)",
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
@@ -1077,7 +1077,7 @@ export default function JournalPage() {
                   <div key={like.id || `${like.userId}`} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 16px" }}>
                     <Avatar src={like.user?.photo} name={name} size={40} />
                     <div style={{ flex: 1, fontWeight: 650 }}>{name}</div>
-                    <span style={{ color: "#1877f2", fontSize: 18 }}>👍</span>
+                    <span style={{ color: "var(--link)", fontSize: 18 }}>👍</span>
                   </div>
                 );
               })}
@@ -1118,11 +1118,11 @@ function InlineReplyForm({
 }) {
   return (
     <form onSubmit={onSubmit} style={{ margin: "8px 0 4px 40px" }}>
-      <div style={{ fontSize: 12, color: "#1877f2", marginBottom: 6, display: "flex", justifyContent: "space-between", gap: 8 }}>
+      <div style={{ fontSize: 12, color: "var(--link)", marginBottom: 6, display: "flex", justifyContent: "space-between", gap: 8 }}>
         <span>
           Réponse à <strong>{replyToName || "ce commentaire"}</strong>
         </span>
-        <button type="button" onClick={onCancel} style={{ ...textBtn, color: "#1877f2", padding: "2px 6px" }}>
+        <button type="button" onClick={onCancel} style={{ ...textBtn, color: "var(--link)", padding: "2px 6px" }}>
           Annuler
         </button>
       </div>
@@ -1140,8 +1140,8 @@ function InlineReplyForm({
             minWidth: 140,
             padding: "10px 14px",
             borderRadius: 18,
-            border: "1px solid #cfe2ff",
-            background: "#f0f7ff",
+            border: "1px solid var(--brand)",
+            background: "var(--brand-soft)",
             outline: "none",
             fontSize: 16,
           }}
@@ -1151,7 +1151,7 @@ function InlineReplyForm({
           disabled={!commentText.trim()}
           style={{
             border: "none",
-            background: commentText.trim() ? "#1877f2" : "#e4e6eb",
+            background: commentText.trim() ? "var(--link)" : "var(--line-2)",
             color: commentText.trim() ? "#fff" : "#bcc0c4",
             fontWeight: 800,
             cursor: commentText.trim() ? "pointer" : "default",
@@ -1205,9 +1205,9 @@ function CommentRow({
             <textarea
               value={editCommentText}
               onChange={(e) => setEditCommentText(e.target.value)}
-              style={{ flex: 1, padding: 8, borderRadius: 10, border: "1px solid #ccd0d5", minHeight: 40 }}
+              style={{ flex: 1, padding: 8, borderRadius: 10, border: "1px solid var(--line-3)", minHeight: 40 }}
             />
-            <button type="button" onClick={onSaveEdit} style={{ ...smallBtn, background: "#1877f2", color: "#fff" }}>
+            <button type="button" onClick={onSaveEdit} style={{ ...smallBtn, background: "var(--link)", color: "#fff" }}>
               OK
             </button>
             <button type="button" onClick={onCancelEdit} style={smallBtn}>
@@ -1216,13 +1216,13 @@ function CommentRow({
           </div>
         ) : (
           <>
-            <div style={{ background: "#f0f2f5", padding: "8px 12px", borderRadius: 18, display: "inline-block", maxWidth: "100%" }}>
+            <div style={{ background: "var(--bg-soft)", padding: "8px 12px", borderRadius: 18, display: "inline-block", maxWidth: "100%" }}>
               <strong style={{ display: "block", fontSize: 13 }}>
                 {comment.user?.prenom} {comment.user?.nom}
               </strong>
               <span style={{ fontSize: 14 }}>{comment.content}</span>
             </div>
-            <div style={{ fontSize: 12, color: "#65676b", marginTop: 4, display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+            <div style={{ fontSize: 12, color: "var(--muted-2)", marginTop: 4, display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
               <span>{new Date(comment.createdAt).toLocaleDateString("fr-FR")}</span>
               {comment.isEdited && <span>modifié</span>}
               <button
@@ -1234,8 +1234,8 @@ function CommentRow({
                 }}
                 style={{
                   border: "none",
-                  background: isReplying ? "#e7f3ff" : "transparent",
-                  color: "#1877f2",
+                  background: isReplying ? "var(--link-soft)" : "transparent",
+                  color: "var(--link)",
                   cursor: "pointer",
                   padding: "4px 8px",
                   borderRadius: 8,
@@ -1253,7 +1253,7 @@ function CommentRow({
                   <button type="button" onClick={onEdit} style={{ ...textBtn, padding: "4px 6px" }}>
                     Modifier
                   </button>
-                  <button type="button" onClick={onDelete} style={{ ...textBtn, color: "#e41e3f", padding: "4px 6px" }}>
+                  <button type="button" onClick={onDelete} style={{ ...textBtn, color: "var(--danger)", padding: "4px 6px" }}>
                     Supprimer
                   </button>
                 </>
@@ -1294,7 +1294,7 @@ function Avatar({
             width: size,
             height: size,
             borderRadius: "50%",
-            background: "#1877f2",
+            background: "var(--link)",
             color: "#fff",
             display: "flex",
             alignItems: "center",
@@ -1316,8 +1316,8 @@ function Avatar({
             width: Math.max(10, size * 0.28),
             height: Math.max(10, size * 0.28),
             borderRadius: "50%",
-            background: online ? "#22c55e" : "#94a3b8",
-            border: "2px solid #fff",
+            background: online ? "var(--online)" : "var(--muted)",
+            border: "2px solid var(--bg-elevated)",
             boxSizing: "border-box",
           }}
         />
@@ -1355,17 +1355,17 @@ function ReadingSection({
       style={{
         padding: 12,
         borderRadius: 12,
-        background: accent ? "#eff6ff" : "#f8fafc",
-        border: `1px solid ${accent ? "#bfdbfe" : "#e2e8f0"}`,
+        background: accent ? "var(--brand-soft)" : "var(--bg-soft-2)",
+        border: `1px solid ${accent ? "var(--brand)" : "var(--line)"}`,
       }}
     >
-      <div style={{ fontWeight: 800, marginBottom: 6, color: accent ? "#1d4ed8" : "#0f172a" }}>{title}</div>
+      <div style={{ fontWeight: 800, marginBottom: 6, color: accent ? "var(--brand)" : "var(--ink)" }}>{title}</div>
       <div
         style={{
           whiteSpace: "pre-wrap",
           lineHeight: 1.5,
           fontSize: 14,
-          color: preview ? "#334155" : "#94a3b8",
+          color: preview ? "var(--line-2)" : "var(--muted)",
           fontStyle: preview ? "normal" : "italic",
         }}
       >
@@ -1386,7 +1386,7 @@ function ComposerAction({ label, color, onClick }: { label: string; color: strin
         padding: "10px 6px",
         borderRadius: 8,
         fontWeight: 600,
-        color: "#65676b",
+        color: "var(--muted-2)",
         cursor: "pointer",
         display: "flex",
         alignItems: "center",
@@ -1394,7 +1394,7 @@ function ComposerAction({ label, color, onClick }: { label: string; color: strin
         gap: 6,
       }}
       onMouseEnter={(e) => {
-        (e.currentTarget as HTMLButtonElement).style.background = "#f0f2f5";
+        (e.currentTarget as HTMLButtonElement).style.background = "var(--bg-soft)";
       }}
       onMouseLeave={(e) => {
         (e.currentTarget as HTMLButtonElement).style.background = "transparent";
@@ -1455,7 +1455,7 @@ const actionBtn: React.CSSProperties = {
   border: "none",
   background: "transparent",
   padding: "10px 0",
-  color: "#65676b",
+  color: "var(--muted-2)",
   fontWeight: 600,
   fontSize: 15,
   borderRadius: 6,
@@ -1464,7 +1464,8 @@ const actionBtn: React.CSSProperties = {
 
 const smallBtn: React.CSSProperties = {
   border: "none",
-  background: "#e4e6eb",
+  background: "var(--line-2)",
+  color: "var(--ink)",
   padding: "8px 10px",
   borderRadius: 6,
   cursor: "pointer",
@@ -1474,7 +1475,7 @@ const smallBtn: React.CSSProperties = {
 const textBtn: React.CSSProperties = {
   border: "none",
   background: "transparent",
-  color: "#65676b",
+  color: "var(--muted-2)",
   cursor: "pointer",
   padding: 0,
   fontWeight: 600,

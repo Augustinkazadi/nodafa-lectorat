@@ -52,7 +52,7 @@ function LoginForm() {
           </div>
         )}
         {error && (
-          <div style={{ background: "#fef2f2", color: "#b91c1c", padding: 12, borderRadius: 12, marginBottom: 14, fontSize: 14 }}>
+          <div style={{ background: "#fef2f2", color: "var(--danger)", padding: 12, borderRadius: 12, marginBottom: 14, fontSize: 14 }}>
             {error}
           </div>
         )}

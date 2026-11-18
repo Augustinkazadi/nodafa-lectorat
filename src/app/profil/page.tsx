@@ -160,7 +160,7 @@ export default function ProfilPage() {
   const initial = (profile.prenom || "U").charAt(0).toUpperCase();
 
   return (
-    <div style={{ minHeight: "100vh", background: "#f0f2f5" }}>
+    <div style={{ minHeight: "100vh", background: "var(--bg-soft)" }}>
       <AppNavbar
         userName={session?.user?.name}
         userPhoto={profile.isOwnProfile ? profile.photo || session?.user?.image : session?.user?.image}
@@ -197,7 +197,7 @@ export default function ProfilPage() {
         {/* Couverture + avatar */}
         <section
           style={{
-            background: "#fff",
+            background: "var(--bg-elevated)",
             borderRadius: "0 0 12px 12px",
             boxShadow: "0 1px 2px rgba(0,0,0,0.08)",
             overflow: "hidden",
@@ -249,9 +249,9 @@ export default function ProfilPage() {
                   width: 148,
                   height: 148,
                   borderRadius: "50%",
-                  border: "4px solid #fff",
+                  border: "4px solid var(--bg-elevated)",
                   overflow: "hidden",
-                  background: "#1877f2",
+                  background: "var(--link)",
                   boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
                 }}
               >
@@ -286,7 +286,7 @@ export default function ProfilPage() {
                     height: 36,
                     borderRadius: "50%",
                     border: "none",
-                    background: "#e4e6eb",
+                    background: "var(--line-2)",
                     cursor: "pointer",
                     fontSize: 16,
                     boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
@@ -299,15 +299,15 @@ export default function ProfilPage() {
 
             <div style={{ flex: 1, minWidth: 200, paddingBottom: 4 }}>
               <h1 style={{ margin: "8px 0 4px", fontSize: 28, fontFamily: "var(--font-display)" }}>{fullName}</h1>
-              <div style={{ color: (profile as any).online ? "#16a34a" : "#65676b", fontSize: 14, fontWeight: 700, marginBottom: 4 }}>
+              <div style={{ color: (profile as any).online ? "var(--success)" : "var(--muted-2)", fontSize: 14, fontWeight: 700, marginBottom: 4 }}>
                 ● {(profile as any).presenceLabel || ((profile as any).online ? "En ligne" : "Hors ligne")}
               </div>
-              <div style={{ color: "#65676b", fontSize: 15 }}>
+              <div style={{ color: "var(--muted-2)", fontSize: 15 }}>
                 {profile.postsCount || 0} publication{(profile.postsCount || 0) > 1 ? "s" : ""}
                 {profile.role === "ADMIN" ? " · Administrateur" : " · Lecteur"}
               </div>
               {profile.bio && !editing && (
-                <p style={{ margin: "8px 0 0", color: "#1c1e21", lineHeight: 1.45 }}>{profile.bio}</p>
+                <p style={{ margin: "8px 0 0", color: "var(--ink-strong)", lineHeight: 1.45 }}>{profile.bio}</p>
               )}
             </div>
 
@@ -334,8 +334,8 @@ export default function ProfilPage() {
               margin: "12px 16px 0",
               padding: "10px 14px",
               borderRadius: 10,
-              background: "#e7f3ff",
-              color: "#1877f2",
+              background: "var(--link-soft)",
+              color: "var(--link)",
               fontWeight: 600,
               fontSize: 14,
             }}
@@ -400,13 +400,13 @@ export default function ProfilPage() {
                       style={{ ...inputStyle, resize: "vertical" }}
                     />
                   </Field>
-                  <div style={{ fontSize: 12, color: "#65676b" }}>Email : {profile.email}</div>
+                  <div style={{ fontSize: 12, color: "var(--muted-2)" }}>Email : {profile.email}</div>
                   <button type="submit" disabled={saving} style={primaryBtn}>
                     {saving ? "Enregistrement…" : "Enregistrer"}
                   </button>
                 </form>
               ) : (
-                <div style={{ display: "grid", gap: 10, color: "#1c1e21", fontSize: 14 }}>
+                <div style={{ display: "grid", gap: 10, color: "var(--ink-strong)", fontSize: 14 }}>
                   <InfoRow icon="👤" label={`${profile.prenom} ${profile.nom}`} />
                   {profile.bio && <InfoRow icon="✍️" label={profile.bio} />}
                   {profile.telephone && <InfoRow icon="📞" label={profile.telephone} />}
@@ -422,7 +422,7 @@ export default function ProfilPage() {
                   )}
                   {profile.isOwnProfile && <InfoRow icon="✉️" label={profile.email} />}
                   {!profile.telephone && !profile.dateNaissance && !profile.bio && (
-                    <p style={{ margin: 0, color: "#65676b" }}>Aucune information supplémentaire.</p>
+                    <p style={{ margin: 0, color: "var(--muted-2)" }}>Aucune information supplémentaire.</p>
                   )}
                 </div>
               )}
@@ -435,7 +435,7 @@ export default function ProfilPage() {
               <h2 style={{ margin: 0, fontSize: 18 }}>Publications</h2>
             </div>
             {(profile.posts || []).length === 0 ? (
-              <div style={{ ...card, color: "#65676b", textAlign: "center" }}>Aucune publication pour le moment.</div>
+              <div style={{ ...card, color: "var(--muted-2)", textAlign: "center" }}>Aucune publication pour le moment.</div>
             ) : (
               (profile.posts || []).map((post) => {
                 const mediaUrl = post.mediaUrl || post.image;
@@ -445,7 +445,7 @@ export default function ProfilPage() {
                       <Avatar src={profile.photo} name={fullName} size={40} />
                       <div>
                         <div style={{ fontWeight: 700 }}>{fullName}</div>
-                        <div style={{ fontSize: 12, color: "#65676b" }}>
+                        <div style={{ fontSize: 12, color: "var(--muted-2)" }}>
                           {new Date(post.createdAt).toLocaleString("fr-FR")}
                         </div>
                       </div>
@@ -459,7 +459,7 @@ export default function ProfilPage() {
                     {mediaUrl && post.mediaType === "VIDEO" && (
                       <video src={mediaUrl} controls style={{ width: "100%", display: "block", background: "#000" }} />
                     )}
-                    <div style={{ padding: "10px 16px", color: "#65676b", fontSize: 13, borderTop: "1px solid #e4e6eb" }}>
+                    <div style={{ padding: "10px 16px", color: "var(--muted-2)", fontSize: 13, borderTop: "1px solid var(--line-2)" }}>
                       👍 {post.likes?.length || 0} · 💬 {post.comments?.length || 0}
                     </div>
                   </article>
@@ -484,7 +484,7 @@ export default function ProfilPage() {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label style={{ display: "grid", gap: 4 }}>
-      <span style={{ fontSize: 12, fontWeight: 700, color: "#65676b" }}>{label}</span>
+      <span style={{ fontSize: 12, fontWeight: 700, color: "var(--muted-2)" }}>{label}</span>
       {children}
     </label>
   );
@@ -509,7 +509,7 @@ function Avatar({ src, name, size }: { src?: string | null; name: string; size: 
         width: size,
         height: size,
         borderRadius: "50%",
-        background: "#1877f2",
+        background: "var(--link)",
         color: "#fff",
         display: "grid",
         placeItems: "center",
@@ -522,7 +522,7 @@ function Avatar({ src, name, size }: { src?: string | null; name: string; size: 
 }
 
 const card: React.CSSProperties = {
-  background: "#fff",
+  background: "var(--bg-elevated)",
   borderRadius: 12,
   padding: 16,
   boxShadow: "0 1px 2px rgba(0,0,0,0.08)",
@@ -532,7 +532,9 @@ const inputStyle: React.CSSProperties = {
   width: "100%",
   padding: "10px 12px",
   borderRadius: 8,
-  border: "1px solid #ccd0d5",
+  border: "1px solid var(--line-3)",
+  background: "var(--bg-elevated)",
+  color: "var(--ink)",
   fontSize: 14,
   fontFamily: "inherit",
   boxSizing: "border-box",
@@ -540,7 +542,7 @@ const inputStyle: React.CSSProperties = {
 
 const primaryBtn: React.CSSProperties = {
   border: "none",
-  background: "#1877f2",
+  background: "var(--link)",
   color: "#fff",
   fontWeight: 700,
   padding: "10px 14px",

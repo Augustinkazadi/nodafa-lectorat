@@ -64,7 +64,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
               </Link>
             );
           })}
-          <div style={{ padding: "14px 12px 6px", color: "#94a3b8", fontSize: 11, fontWeight: 800, letterSpacing: "0.06em" }}>
+          <div style={{ padding: "14px 12px 6px", color: "var(--muted)", fontSize: 11, fontWeight: 800, letterSpacing: "0.06em" }}>
             ACCÈS RAPIDE
           </div>
           {quickLinks.map((item) => (

@@ -62,7 +62,7 @@ export default function AdminLivesPage() {
   return (
     <AdminShell>
       <h1 style={{ margin: "0 0 8px", fontFamily: "var(--font-display)", fontSize: 30 }}>Diffusions d’événements</h1>
-      <p style={{ margin: "0 0 16px", color: "#64748b" }}>
+      <p style={{ margin: "0 0 16px", color: "var(--muted)" }}>
         Pour les <strong>fêtes</strong>, <strong>excursions</strong>, <strong>journées d’amitié</strong>, célébrations…
         Ce n’est pas une salle de réunion : l’admin diffuse, les membres regardent dans Lectorat.
       </p>
@@ -84,7 +84,7 @@ export default function AdminLivesPage() {
             onChange={(e) => setDescription(e.target.value)}
             rows={3}
           />
-          <button type="submit" className="nodafa-btn nodafa-btn-primary" style={{ background: "#dc2626" }}>
+          <button type="submit" className="nodafa-btn nodafa-btn-primary" style={{ background: "var(--danger)" }}>
             Lancer la diffusion
           </button>
         </form>
@@ -115,7 +115,7 @@ export default function AdminLivesPage() {
                     <td>
                       <strong>{live.title}</strong>
                       {live.description && (
-                        <div style={{ color: "#64748b", fontSize: 12, marginTop: 4 }}>{live.description}</div>
+                        <div style={{ color: "var(--muted)", fontSize: 12, marginTop: 4 }}>{live.description}</div>
                       )}
                     </td>
                     <td>{liveEventLabel(live.eventType)}</td>
@@ -129,7 +129,7 @@ export default function AdminLivesPage() {
                         <button type="button" className="nodafa-btn nodafa-btn-ghost" style={{ padding: "8px 12px" }} onClick={() => toggle(live.id, !live.isActive)}>
                           {live.isActive ? "Arrêter" : "Relancer"}
                         </button>
-                        <button type="button" className="nodafa-btn nodafa-btn-ghost" style={{ padding: "8px 12px", color: "#dc2626" }} onClick={() => remove(live.id)}>
+                        <button type="button" className="nodafa-btn nodafa-btn-ghost" style={{ padding: "8px 12px", color: "var(--danger)" }} onClick={() => remove(live.id)}>
                           Supprimer
                         </button>
                       </div>

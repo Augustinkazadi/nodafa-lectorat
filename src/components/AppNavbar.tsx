@@ -191,7 +191,7 @@ export default function AppNavbar({
                 <Link href="/profil" onClick={() => setMenuOpen(false)} style={{ color: "inherit", textDecoration: "none" }}>
                   <strong>{userName || "Lecteur"}</strong>
                 </Link>
-                <div style={{ color: "#64748b", fontSize: 13 }}>Voir le profil</div>
+                <div style={{ color: "var(--muted)", fontSize: 13 }}>Voir le profil</div>
               </div>
               <button type="button" className="app-menu-close" onClick={() => setMenuOpen(false)}>
                 ✕
@@ -222,7 +222,7 @@ export default function AppNavbar({
             <ThemeToggle variant="menu" />
             {isAdmin && (
               <>
-                <div style={{ padding: "10px 12px 4px", color: "#94a3b8", fontSize: 11, fontWeight: 800, letterSpacing: "0.06em" }}>
+                <div style={{ padding: "10px 12px 4px", color: "var(--muted)", fontSize: 11, fontWeight: 800, letterSpacing: "0.06em" }}>
                   ESPACE ADMIN
                 </div>
                 <Link href="/dashboard" onClick={() => setMenuOpen(false)}>

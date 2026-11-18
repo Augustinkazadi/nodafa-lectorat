@@ -441,7 +441,7 @@ export default function MessagesPage() {
                           height: 52,
                           borderRadius: "50%",
                           background: "var(--wa-accent)",
-                          color: "#111b21",
+                          color: "var(--wa-on-accent)",
                           display: "grid",
                           placeItems: "center",
                           fontWeight: 800,
@@ -459,7 +459,7 @@ export default function MessagesPage() {
                         width: 12,
                         height: 12,
                         borderRadius: "50%",
-                        background: "#22c55e",
+                        background: "var(--online)",
                         border: "2px solid var(--wa-shell)",
                       }}
                     />
@@ -507,7 +507,7 @@ export default function MessagesPage() {
               border: "none",
               borderRadius: 10,
               padding: "12px 14px",
-              background: "linear-gradient(135deg,#005c4b,#00a884)",
+              background: "linear-gradient(135deg,#005c4b,var(--wa-accent))",
               color: "#fff",
               fontWeight: 800,
               cursor: "pointer",
@@ -535,16 +535,16 @@ export default function MessagesPage() {
                   <div style={{ fontWeight: 600 }}>
                     {u.prenom} {u.nom}
                   </div>
-                  <div style={{ color: u.online ? "#00a884" : "#8696a0", fontSize: 13 }}>
+                  <div style={{ color: u.online ? "var(--wa-accent)" : "var(--wa-muted)", fontSize: 13 }}>
                     {u.online ? "En ligne" : u.presenceLabel || "Hors ligne"}
                   </div>
                 </div>
               </button>
             ))}
 
-          <div style={{ padding: "8px 16px", color: "#8696a0", fontSize: 12, fontWeight: 700 }}>DISCUSSIONS</div>
+          <div style={{ padding: "8px 16px", color: "var(--wa-muted)", fontSize: 12, fontWeight: 700 }}>DISCUSSIONS</div>
           {filteredConversations.length === 0 && (
-            <p style={{ color: "#8696a0", padding: 16, fontSize: 14 }}>Aucune conversation.</p>
+            <p style={{ color: "var(--wa-muted)", padding: 16, fontSize: 14 }}>Aucune conversation.</p>
           )}
           {filteredConversations.map((conv) => {
             const peer = conv.participants.map((p: any) => p.user).find((u: any) => u.id !== userId);
@@ -562,7 +562,7 @@ export default function MessagesPage() {
                 onClick={() => fetchMessages(conv.id)}
                 style={{
                   ...listItemStyle,
-                  background: activeConvId === conv.id ? "#2a3942" : "transparent",
+                  background: activeConvId === conv.id ? "var(--wa-panel-2)" : "transparent",
                 }}
               >
                 {conv.isBroadcast ? (
@@ -571,8 +571,8 @@ export default function MessagesPage() {
                       width: 48,
                       height: 48,
                       borderRadius: "50%",
-                      background: "#00a884",
-                      color: "#111b21",
+                      background: "var(--wa-accent)",
+                      color: "var(--wa-on-accent)",
                       display: "grid",
                       placeItems: "center",
                       fontSize: 22,
@@ -589,14 +589,14 @@ export default function MessagesPage() {
                     <span style={{ fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                       {title}
                     </span>
-                    <span style={{ color: conv.unread ? "#00a884" : "#8696a0", fontSize: 12, flexShrink: 0 }}>
+                    <span style={{ color: conv.unread ? "var(--wa-accent)" : "var(--wa-muted)", fontSize: 12, flexShrink: 0 }}>
                       {last ? shortTime(last.createdAt) : ""}
                     </span>
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 8, marginTop: 2 }}>
                     <span
                       style={{
-                        color: "#8696a0",
+                        color: "var(--wa-muted)",
                         fontSize: 13,
                         whiteSpace: "nowrap",
                         overflow: "hidden",
@@ -608,8 +608,8 @@ export default function MessagesPage() {
                     {conv.unread > 0 && (
                       <span
                         style={{
-                          background: "#00a884",
-                          color: "#111b21",
+                          background: "var(--wa-accent)",
+                          color: "var(--wa-on-accent)",
                           borderRadius: 10,
                           minWidth: 20,
                           height: 20,
@@ -674,8 +674,8 @@ export default function MessagesPage() {
                     width: 40,
                     height: 40,
                     borderRadius: "50%",
-                    background: "#00a884",
-                    color: "#111b21",
+                    background: "var(--wa-accent)",
+                    color: "var(--wa-on-accent)",
                     display: "grid",
                     placeItems: "center",
                     fontSize: 18,
@@ -695,7 +695,7 @@ export default function MessagesPage() {
                       ? `${activePeer.prenom} ${activePeer.nom}`
                       : "Discussion"}
                 </div>
-                <div style={{ color: isOnline(activePeer?.lastSeenAt) ? "#00a884" : "#8696a0", fontSize: 12 }}>
+                <div style={{ color: isOnline(activePeer?.lastSeenAt) ? "var(--wa-accent)" : "var(--wa-muted)", fontSize: 12 }}>
                   {activeConv?.isBroadcast
                     ? "Message visible par tous les lecteurs"
                     : activePeer
@@ -716,7 +716,7 @@ export default function MessagesPage() {
               }}
             >
               {messages.length === 0 && (
-                <div style={{ textAlign: "center", color: "#8696a0", marginTop: 40 }}>
+                <div style={{ textAlign: "center", color: "var(--wa-muted)", marginTop: 40 }}>
                   {receiverId ? "Dites bonjour 👋" : "Aucun message"}
                 </div>
               )}
@@ -726,8 +726,8 @@ export default function MessagesPage() {
                   <div style={{ textAlign: "center", margin: "16px 0" }}>
                     <span
                       style={{
-                        background: "#182229",
-                        color: "#8696a0",
+                        background: "var(--wa-date)",
+                        color: "var(--wa-muted)",
                         fontSize: 12,
                         padding: "6px 12px",
                         borderRadius: 8,
@@ -764,15 +764,15 @@ export default function MessagesPage() {
                             <div
                               style={{
                                 background: "rgba(0,0,0,0.2)",
-                                borderLeft: "3px solid #00a884",
+                                borderLeft: "3px solid var(--wa-accent)",
                                 borderRadius: 6,
                                 padding: "6px 8px",
                                 marginBottom: 6,
                                 fontSize: 12,
-                                color: "#8696a0",
+                                color: "var(--wa-muted)",
                               }}
                             >
-                              <strong style={{ color: "#00a884" }}>
+                              <strong style={{ color: "var(--wa-accent)" }}>
                                 {msg.replyTo.sender?.prenom} {msg.replyTo.sender?.nom}
                               </strong>
                               <div>
@@ -794,8 +794,8 @@ export default function MessagesPage() {
                                   borderRadius: 8,
                                   border: "none",
                                   padding: 8,
-                                  background: "#111b21",
-                                  color: "#e9edef",
+                                  background: "var(--wa-on-accent)",
+                                  color: "var(--wa-ink)",
                                 }}
                               />
                               <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
@@ -849,7 +849,7 @@ export default function MessagesPage() {
                                 >
                                   Modifier
                                 </button>
-                                <button type="button" onClick={() => handleDeleteMessage(msg.id)} style={{ ...tinyAction, color: "#f15c6d" }}>
+                                <button type="button" onClick={() => handleDeleteMessage(msg.id)} style={{ ...tinyAction, color: "var(--wa-danger)" }}>
                                   Supprimer
                                 </button>
                               </>
@@ -867,8 +867,8 @@ export default function MessagesPage() {
             {replyTo && (
               <div
                 style={{
-                  background: "#202c33",
-                  borderTop: "1px solid #222d34",
+                  background: "var(--wa-panel)",
+                  borderTop: "1px solid var(--wa-line)",
                   padding: "8px 16px",
                   display: "flex",
                   justifyContent: "space-between",
@@ -876,11 +876,11 @@ export default function MessagesPage() {
                   gap: 10,
                 }}
               >
-                <div style={{ borderLeft: "3px solid #00a884", paddingLeft: 10, minWidth: 0 }}>
-                  <div style={{ color: "#00a884", fontWeight: 700, fontSize: 13 }}>
+                <div style={{ borderLeft: "3px solid var(--wa-accent)", paddingLeft: 10, minWidth: 0 }}>
+                  <div style={{ color: "var(--wa-accent)", fontWeight: 700, fontSize: 13 }}>
                     Réponse à {replyTo.sender?.prenom || "message"}
                   </div>
-                  <div style={{ color: "#8696a0", fontSize: 13, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  <div style={{ color: "var(--wa-muted)", fontSize: 13, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                     {replyTo.mediaType ? mediaLabel(replyTo.mediaType, replyTo.mediaName) : replyTo.content}
                   </div>
                 </div>
@@ -893,9 +893,9 @@ export default function MessagesPage() {
             {file && (
               <div
                 style={{
-                  background: "#202c33",
+                  background: "var(--wa-panel)",
                   padding: "8px 16px",
-                  borderTop: "1px solid #222d34",
+                  borderTop: "1px solid var(--wa-line)",
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
@@ -919,7 +919,7 @@ export default function MessagesPage() {
                     <div style={{ fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                       {/^vocal/i.test(file.name) || file.type.startsWith("audio/") ? "Note vocale prête" : file.name}
                     </div>
-                    <div style={{ color: "#8696a0", fontSize: 12 }}>{(file.size / 1024 / 1024).toFixed(2)} Mo</div>
+                    <div style={{ color: "var(--wa-muted)", fontSize: 12 }}>{(file.size / 1024 / 1024).toFixed(2)} Mo</div>
                   </div>
                 </div>
                 <button type="button" onClick={clearFile} style={ghostBtn}>
@@ -931,12 +931,12 @@ export default function MessagesPage() {
             {showEmoji && (
               <div
                 style={{
-                  background: "#202c33",
+                  background: "var(--wa-panel)",
                   padding: "8px 12px",
                   display: "flex",
                   flexWrap: "wrap",
                   gap: 6,
-                  borderTop: "1px solid #222d34",
+                  borderTop: "1px solid var(--wa-line)",
                 }}
               >
                 {EMOJIS.map((emo) => (
@@ -1011,7 +1011,7 @@ export default function MessagesPage() {
               </div>
 
               {recording ? (
-                <button type="button" onClick={stopRecording} style={{ ...roundIcon, background: "#f15c6d" }} title="Stop">
+                <button type="button" onClick={stopRecording} style={{ ...roundIcon, background: "var(--wa-danger)" }} title="Stop">
                   ⏹
                 </button>
               ) : (
@@ -1025,7 +1025,7 @@ export default function MessagesPage() {
                 disabled={sending || (!newMessage.trim() && !file)}
                 style={{
                   ...roundIcon,
-                  background: "#00a884",
+                  background: "var(--wa-accent)",
                   opacity: sending || (!newMessage.trim() && !file) ? 0.5 : 1,
                 }}
                 title="Envoyer"
@@ -1043,10 +1043,10 @@ export default function MessagesPage() {
               alignItems: "center",
               justifyContent: "center",
               flexDirection: "column",
-              color: "#8696a0",
+              color: "var(--wa-muted)",
               padding: 24,
               textAlign: "center",
-              borderBottom: "6px solid #00a884",
+              borderBottom: "6px solid var(--wa-accent)",
             }}
           >
             <img
@@ -1054,7 +1054,7 @@ export default function MessagesPage() {
               alt="Logo Lectorat"
               style={{ width: 88, height: 88, borderRadius: "50%", objectFit: "cover", marginBottom: 14, border: "2px solid rgba(255,255,255,0.12)" }}
             />
-            <h2 style={{ margin: "0 0 8px", color: "#e9edef" }}>Messagerie Lectorat</h2>
+            <h2 style={{ margin: "0 0 8px", color: "var(--wa-ink)" }}>Messagerie Lectorat</h2>
             <p style={{ maxWidth: 420, lineHeight: 1.5 }}>
               Sélectionnez une discussion ou recherchez un lecteur : textes, photos, vidéos, PDF et notes vocales.
             </p>
@@ -1138,7 +1138,7 @@ function MessageBody({ msg, mine = false }: { msg: any; mine?: boolean }) {
             background: "rgba(0,0,0,0.2)",
             padding: 10,
             borderRadius: 8,
-            color: "#e9edef",
+            color: "var(--wa-ink)",
             textDecoration: "none",
             marginBottom: msg.content ? 6 : 0,
           }}
@@ -1207,8 +1207,8 @@ function Avatar({
             width: size,
             height: size,
             borderRadius: "50%",
-            background: "#00a884",
-            color: "#111b21",
+            background: "var(--wa-accent)",
+            color: "var(--wa-on-accent)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -1227,8 +1227,8 @@ function Avatar({
           width: Math.max(10, size * 0.28),
           height: Math.max(10, size * 0.28),
           borderRadius: "50%",
-          background: online ? "#22c55e" : "#64748b",
-          border: "2px solid #202c33",
+          background: online ? "var(--online)" : "var(--muted)",
+          border: "2px solid var(--wa-panel)",
           boxSizing: "border-box",
         }}
       />
@@ -1297,8 +1297,8 @@ const ghostBtn: React.CSSProperties = {
 
 const primaryBtn: React.CSSProperties = {
   border: "none",
-  background: "#00a884",
-  color: "#111b21",
+  background: "var(--wa-accent)",
+  color: "var(--wa-on-accent)",
   borderRadius: 6,
   padding: "6px 10px",
   fontWeight: 700,
