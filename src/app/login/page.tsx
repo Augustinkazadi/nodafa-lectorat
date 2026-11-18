@@ -4,6 +4,7 @@ import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import BrandLogo from "@/components/BrandLogo";
+import ThemeToggle from "@/components/ThemeToggle";
 
 function LoginForm() {
   const searchParams = useSearchParams();
@@ -32,12 +33,15 @@ function LoginForm() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 20 }}>
+    <div style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 20, position: "relative" }}>
+      <div style={{ position: "absolute", top: 16, right: 16 }}>
+        <ThemeToggle variant="pill" />
+      </div>
       <div className="nodafa-card nodafa-rise" style={{ width: "min(440px, 100%)", padding: 28 }}>
         <div style={{ display: "grid", justifyItems: "center", marginBottom: 22, gap: 10 }}>
           <BrandLogo href="/" size={84} showText={false} />
           <div style={{ textAlign: "center" }}>
-            <div style={{ fontFamily: "var(--font-display)", fontSize: 30, marginBottom: 4 }}>LECTORAT</div>
+            <div style={{ fontFamily: "var(--font-display)", fontSize: 30, marginBottom: 4, color: "var(--ink)" }}>LECTORAT</div>
             <p style={{ margin: 0, color: "var(--muted)", fontSize: 14 }}>Paroisse Notre-Dame de Fatima – Gombe</p>
           </div>
         </div>
@@ -99,6 +103,7 @@ const fieldStyle: React.CSSProperties = {
   padding: "14px 16px",
   border: "1px solid var(--line)",
   borderRadius: 14,
-  background: "#f8fafc",
+  background: "color-mix(in srgb, var(--bg) 85%, var(--bg-elevated))",
+  color: "var(--ink)",
   outline: "none",
 };

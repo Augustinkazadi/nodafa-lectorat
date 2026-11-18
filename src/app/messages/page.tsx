@@ -7,6 +7,8 @@ import { uploadMediaFile } from "@/lib/clientUpload";
 import AppNavbar from "@/components/AppNavbar";
 import { resolveMessageMediaType } from "@/lib/media";
 import { WaAudioPlayer, WaVideoPlayer } from "@/components/WaMediaPlayers";
+import ThemeToggle from "@/components/ThemeToggle";
+import PresenceToastStack from "@/components/PresenceToast";
 
 const EMOJIS = ["😀", "😂", "🙏", "❤️", "👍", "🎉", "🔥", "😊", "🙌", "✝️", "😇", "👏"];
 
@@ -34,6 +36,10 @@ export default function MessagesPage() {
   const [unreadCount, setUnreadCount] = useState({ notifications: 0, messages: 0 });
   const [kbOffset, setKbOffset] = useState(0);
   const [openingBroadcast, setOpeningBroadcast] = useState(false);
+  const [onlineUsers, setOnlineUsers] = useState<any[]>([]);
+  const [presenceToasts, setPresenceToasts] = useState<{ id: number; name: string; photo?: string | null }[]>([]);
+  const knownOnlineRef = useRef<Set<number>>(new Set());
+  const presenceReadyRef = useRef(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -59,6 +65,42 @@ export default function MessagesPage() {
     const timer = setInterval(() => fetchMessages(activeConvId, true), 4000);
     return () => clearInterval(timer);
   }, [activeConvId]);
+
+  useEffect(() => {
+    if (status !== "authenticated" || !userId) return;
+
+    const pollOnline = async () => {
+      try {
+        const res = await fetch("/api/presence");
+        if (!res.ok) return;
+        const data = await res.json();
+        const list = (data.users || []).filter((u: any) => u.id !== userId);
+        setOnlineUsers(list);
+
+        const nextIds = new Set<number>(list.map((u: any) => u.id));
+        if (presenceReadyRef.current) {
+          for (const u of list) {
+            if (!knownOnlineRef.current.has(u.id)) {
+              const toastId = Date.now() + u.id;
+              const name = `${u.prenom || ""} ${u.nom || ""}`.trim() || "Un lecteur";
+              setPresenceToasts((prev) => [...prev.slice(-2), { id: toastId, name, photo: u.photo }]);
+              window.setTimeout(() => {
+                setPresenceToasts((prev) => prev.filter((t) => t.id !== toastId));
+              }, 4200);
+            }
+          }
+        }
+        knownOnlineRef.current = nextIds;
+        presenceReadyRef.current = true;
+      } catch {
+        /* ignore */
+      }
+    };
+
+    pollOnline();
+    const timer = window.setInterval(pollOnline, 15000);
+    return () => window.clearInterval(timer);
+  }, [status, userId]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -314,8 +356,12 @@ export default function MessagesPage() {
   return (
     <div
       className={`messages-page${inChat ? " messages-page--chat" : ""}`}
-      style={{ minHeight: "100vh", background: "#111b21" }}
+      style={{ minHeight: "100vh", background: "var(--wa-shell)", color: "var(--wa-ink)" }}
     >
+      <PresenceToastStack
+        toasts={presenceToasts}
+        onDismiss={(id) => setPresenceToasts((prev) => prev.filter((t) => t.id !== id))}
+      />
       <AppNavbar
         userName={session?.user?.name}
         userPhoto={(session?.user as any)?.image}
@@ -331,8 +377,8 @@ export default function MessagesPage() {
           display: "flex",
           height: inChat ? "100dvh" : "calc(100dvh - 58px)",
           fontFamily: "Segoe UI, Helvetica Neue, Arial, sans-serif",
-          background: "#111b21",
-          color: "#e9edef",
+          background: "var(--wa-shell)",
+          color: "var(--wa-ink)",
           overflow: "hidden",
         }}
       >
@@ -342,22 +388,102 @@ export default function MessagesPage() {
           width: mobileShowChat ? 0 : 360,
           minWidth: mobileShowChat ? 0 : 280,
           maxWidth: 420,
-          background: "#111b21",
-          borderRight: "1px solid #222d34",
+          background: "var(--wa-shell)",
+          borderRight: "1px solid var(--wa-line)",
           display: mobileShowChat ? "none" : "flex",
           flexDirection: "column",
           flex: mobileShowChat ? undefined : "0 0 34%",
         }}
         className="wa-sidebar"
       >
-        <div style={{ padding: "12px 14px", background: "#202c33", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
+        <div style={{ padding: "12px 14px", background: "var(--wa-panel)", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
           <strong style={{ fontSize: 16 }}>Discussions</strong>
-          <Link href="/journal" style={{ color: "#00a884", textDecoration: "none", fontWeight: 700, fontSize: 13 }}>
-            Journal
-          </Link>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <ThemeToggle variant="icon" />
+            <Link href="/journal" style={{ color: "var(--wa-accent)", textDecoration: "none", fontWeight: 700, fontSize: 13 }}>
+              Journal
+            </Link>
+          </div>
         </div>
 
-        <div style={{ padding: 10, background: "#111b21", display: "grid", gap: 8 }}>
+        {onlineUsers.length > 0 && (
+          <div style={{ padding: "10px 12px 6px", background: "var(--wa-shell)", borderBottom: "1px solid var(--wa-line)" }}>
+            <div style={{ fontSize: 12, fontWeight: 800, color: "var(--wa-muted)", marginBottom: 8 }}>
+              EN LIGNE · {onlineUsers.length}
+            </div>
+            <div style={{ display: "flex", gap: 12, overflowX: "auto", paddingBottom: 6 }}>
+              {onlineUsers.map((u) => (
+                <button
+                  key={`online-${u.id}`}
+                  type="button"
+                  onClick={() => handleNewConversation(u.id)}
+                  style={{
+                    border: "none",
+                    background: "transparent",
+                    color: "var(--wa-ink)",
+                    cursor: "pointer",
+                    minWidth: 64,
+                    padding: 0,
+                  }}
+                  title={`${u.prenom} ${u.nom}`}
+                >
+                  <div style={{ position: "relative", width: 52, height: 52, margin: "0 auto 6px" }}>
+                    {u.photo ? (
+                      <img
+                        src={u.photo}
+                        alt=""
+                        style={{ width: 52, height: 52, borderRadius: "50%", objectFit: "cover", border: "2px solid var(--wa-accent)" }}
+                      />
+                    ) : (
+                      <div
+                        style={{
+                          width: 52,
+                          height: 52,
+                          borderRadius: "50%",
+                          background: "var(--wa-accent)",
+                          color: "#111b21",
+                          display: "grid",
+                          placeItems: "center",
+                          fontWeight: 800,
+                          border: "2px solid var(--wa-accent)",
+                        }}
+                      >
+                        {(u.prenom || "U").charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <span
+                      style={{
+                        position: "absolute",
+                        right: 1,
+                        bottom: 1,
+                        width: 12,
+                        height: 12,
+                        borderRadius: "50%",
+                        background: "#22c55e",
+                        border: "2px solid var(--wa-shell)",
+                      }}
+                    />
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 700,
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      maxWidth: 64,
+                      textAlign: "center",
+                    }}
+                  >
+                    {u.prenom}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div style={{ padding: 10, background: "var(--wa-shell)", display: "grid", gap: 8 }}>
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -365,11 +491,11 @@ export default function MessagesPage() {
             style={{
               width: "100%",
               boxSizing: "border-box",
-              background: "#202c33",
+              background: "var(--wa-panel)",
               border: "none",
               borderRadius: 8,
               padding: "10px 14px",
-              color: "#e9edef",
+              color: "var(--wa-ink)",
               outline: "none",
             }}
           />
@@ -394,7 +520,7 @@ export default function MessagesPage() {
 
         <div style={{ flex: 1, overflowY: "auto" }}>
           {search.trim() && (
-            <div style={{ padding: "8px 16px", color: "#8696a0", fontSize: 12, fontWeight: 700 }}>CONTACTS</div>
+            <div style={{ padding: "8px 16px", color: "var(--wa-muted)", fontSize: 12, fontWeight: 700 }}>CONTACTS</div>
           )}
           {search.trim() &&
             filteredUsers.map((u) => (
@@ -513,7 +639,7 @@ export default function MessagesPage() {
           display: !mobileShowChat && !activeConvId && !receiverId ? "none" : "flex",
           flexDirection: "column",
           minWidth: 0,
-          background: "#0b141a",
+          background: "var(--wa-bg)",
         }}
         className="wa-chat"
       >
@@ -523,11 +649,11 @@ export default function MessagesPage() {
               className="wa-chat-header"
               style={{
                 padding: "10px 16px",
-                background: "#202c33",
+                background: "var(--wa-panel)",
                 display: "flex",
                 alignItems: "center",
                 gap: 12,
-                borderBottom: "1px solid #222d34",
+                borderBottom: "1px solid var(--wa-line)",
               }}
             >
               <button
@@ -586,8 +712,7 @@ export default function MessagesPage() {
                 flex: 1,
                 overflowY: "auto",
                 padding: "18px 5% 12px",
-                backgroundImage:
-                  "radial-gradient(circle at 20% 20%, rgba(0,168,132,0.05), transparent 35%), radial-gradient(circle at 80% 0%, rgba(255,255,255,0.03), transparent 25%), linear-gradient(180deg,#0b141a,#0b141a)",
+                background: "var(--wa-bg)",
               }}
             >
               {messages.length === 0 && (
@@ -625,12 +750,13 @@ export default function MessagesPage() {
                         <div
                           style={{
                             maxWidth: "min(75%, 520px)",
-                            background: isMine ? "#005c4b" : "#202c33",
-                            color: "#e9edef",
+                            background: isMine ? "var(--wa-bubble-out)" : "var(--wa-bubble-in)",
+                            color: "var(--wa-ink)",
                             borderRadius: isMine ? "10px 10px 0 10px" : "10px 10px 10px 0",
                             padding: "6px 9px 4px",
                             boxShadow: "0 1px 0.5px rgba(11,20,26,0.13)",
                             position: "relative",
+                            border: isMine ? "none" : "1px solid var(--wa-line)",
                           }}
                           className="wa-bubble"
                         >
@@ -834,8 +960,8 @@ export default function MessagesPage() {
                 alignItems: "flex-end",
                 gap: 8,
                 padding: `10px 12px calc(10px + env(safe-area-inset-bottom) + ${kbOffset}px)`,
-                background: "#1f2c34",
-                borderTop: "1px solid #222d34",
+                background: "var(--wa-panel)",
+                borderTop: "1px solid var(--wa-line)",
                 flexShrink: 0,
               }}
             >
@@ -857,7 +983,7 @@ export default function MessagesPage() {
               </button>
               <input type="file" ref={fileInputRef} onChange={onPickFile} style={{ display: "none" }} />
 
-              <div style={{ flex: 1, background: "#2a3942", borderRadius: 8, padding: "4px 10px" }}>
+              <div style={{ flex: 1, background: "var(--wa-input)", borderRadius: 8, padding: "4px 10px", border: "1px solid var(--wa-line)" }}>
                 <textarea
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
@@ -875,7 +1001,7 @@ export default function MessagesPage() {
                     outline: "none",
                     resize: "none",
                     background: "transparent",
-                    color: "#e9edef",
+                    color: "var(--wa-ink)",
                     fontSize: 15,
                     fontFamily: "inherit",
                     maxHeight: 120,
@@ -1155,7 +1281,7 @@ const listItemStyle: React.CSSProperties = {
   alignItems: "center",
   padding: "12px 16px",
   border: "none",
-  borderBottom: "1px solid #222d34",
+  borderBottom: "1px solid var(--wa-line)",
   background: "transparent",
   color: "inherit",
   cursor: "pointer",
@@ -1164,7 +1290,7 @@ const listItemStyle: React.CSSProperties = {
 const ghostBtn: React.CSSProperties = {
   border: "none",
   background: "transparent",
-  color: "#e9edef",
+  color: "var(--wa-ink)",
   cursor: "pointer",
   fontSize: 16,
 };
@@ -1184,8 +1310,8 @@ const roundIcon: React.CSSProperties = {
   height: 42,
   borderRadius: "50%",
   border: "none",
-  background: "#2a3942",
-  color: "#e9edef",
+  background: "var(--wa-panel-2)",
+  color: "var(--wa-ink)",
   cursor: "pointer",
   fontSize: 18,
   flexShrink: 0,
@@ -1194,7 +1320,7 @@ const roundIcon: React.CSSProperties = {
 const tinyAction: React.CSSProperties = {
   border: "none",
   background: "transparent",
-  color: "#8696a0",
+  color: "var(--wa-muted)",
   cursor: "pointer",
   fontSize: 11,
   padding: 0,

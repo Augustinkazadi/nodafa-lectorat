@@ -1,6 +1,7 @@
 @import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap");
 
-:root {
+:root,
+html[data-theme="light"] {
   --bg: #f4f7fb;
   --bg-elevated: #ffffff;
   --ink: #0f172a;
@@ -14,6 +15,69 @@
   --radius: 18px;
   --font-sans: "Manrope", "Segoe UI", sans-serif;
   --font-display: "Fraunces", Georgia, serif;
+  --wa-bg: #efeae2;
+  --wa-shell: #f0f2f5;
+  --wa-panel: #ffffff;
+  --wa-panel-2: #f0f2f5;
+  --wa-ink: #111b21;
+  --wa-muted: #667781;
+  --wa-line: #e9edef;
+  --wa-bubble-in: #ffffff;
+  --wa-bubble-out: #d9fdd3;
+  --wa-accent: #00a884;
+  --wa-input: #ffffff;
+}
+
+html[data-theme="dark"] {
+  --bg: #0b1220;
+  --bg-elevated: #111827;
+  --ink: #e5e7eb;
+  --muted: #94a3b8;
+  --line: #1f2937;
+  --brand: #60a5fa;
+  --brand-soft: #1e3a5f;
+  --accent: #eab308;
+  --danger: #f87171;
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  --wa-bg: #0b141a;
+  --wa-shell: #111b21;
+  --wa-panel: #202c33;
+  --wa-panel-2: #2a3942;
+  --wa-ink: #e9edef;
+  --wa-muted: #8696a0;
+  --wa-line: #222d34;
+  --wa-bubble-in: #202c33;
+  --wa-bubble-out: #005c4b;
+  --wa-accent: #00a884;
+  --wa-input: #2a3942;
+}
+
+html[data-theme="dark"] body {
+  background:
+    radial-gradient(circle at top left, rgba(37, 99, 235, 0.16), transparent 28%),
+    radial-gradient(circle at top right, rgba(15, 118, 110, 0.14), transparent 24%),
+    linear-gradient(180deg, #0b1220 0%, #0f172a 45%, #111827 100%);
+}
+
+html[data-theme="dark"] .nodafa-card {
+  border-color: rgba(51, 65, 85, 0.9);
+}
+
+html[data-theme="dark"] .app-navbar,
+html[data-theme="dark"] .app-bottom-nav {
+  background: rgba(15, 23, 42, 0.96);
+  border-color: #1f2937;
+  color: #e5e7eb;
+}
+
+html[data-theme="dark"] .app-bottom-nav a,
+html[data-theme="dark"] .app-bottom-nav button {
+  color: #94a3b8;
+}
+
+html[data-theme="dark"] .app-menu-panel {
+  background: #111827;
+  color: #e5e7eb;
 }
 
 * {
@@ -27,6 +91,11 @@ body {
   min-height: 100%;
   font-family: var(--font-sans);
   color: var(--ink);
+  background: var(--bg);
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+html[data-theme="light"] body {
   background:
     radial-gradient(circle at top left, rgba(29, 78, 216, 0.12), transparent 28%),
     radial-gradient(circle at top right, rgba(15, 118, 110, 0.1), transparent 24%),
@@ -79,7 +148,7 @@ select {
 }
 
 .nodafa-btn-ghost {
-  background: rgba(255, 255, 255, 0.7);
+  background: color-mix(in srgb, var(--bg-elevated) 80%, transparent);
   color: var(--ink);
   border: 1px solid var(--line);
 }
@@ -638,12 +707,13 @@ body:has(.admin-shell) {
 }
 
 .admin-panel {
-  background: #fff;
-  border: 1px solid #e2e8f0;
+  background: var(--bg-elevated);
+  border: 1px solid var(--line);
   border-radius: 16px;
   padding: 18px;
   box-shadow: var(--shadow);
   margin-bottom: 16px;
+  color: var(--ink);
 }
 
 .admin-panel h2 {
@@ -662,8 +732,9 @@ body:has(.admin-shell) {
   width: 100%;
   padding: 12px 14px;
   border-radius: 12px;
-  border: 1px solid #cbd5e1;
-  background: #f8fafc;
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--bg) 88%, var(--bg-elevated));
+  color: var(--ink);
   font: inherit;
 }
 
@@ -681,13 +752,14 @@ body:has(.admin-shell) {
 .admin-table td {
   text-align: left;
   padding: 12px 10px;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--line);
   font-size: 14px;
+  color: var(--ink);
 }
 
 .admin-table th {
-  background: #f8fafc;
-  color: #475569;
+  background: color-mix(in srgb, var(--bg) 90%, var(--bg-elevated));
+  color: var(--muted);
 }
 
 .admin-actions {
@@ -745,4 +817,61 @@ body:has(.admin-shell) {
   .admin-content {
     padding: 24px 28px 48px;
   }
+}
+
+/* ===== Thème sombre global ===== */
+html[data-theme="dark"] .app-navbar__search,
+html[data-theme="dark"] input,
+html[data-theme="dark"] textarea,
+html[data-theme="dark"] select {
+  background: color-mix(in srgb, var(--bg) 80%, #1f2937);
+  color: var(--ink);
+  border-color: var(--line);
+}
+
+html[data-theme="dark"] .app-navbar__search::placeholder,
+html[data-theme="dark"] input::placeholder,
+html[data-theme="dark"] textarea::placeholder {
+  color: #94a3b8;
+}
+
+html[data-theme="dark"] .admin-shell {
+  background:
+    radial-gradient(circle at top right, rgba(59, 130, 246, 0.12), transparent 28%),
+    #0b1220;
+}
+
+html[data-theme="dark"] .admin-stat {
+  background: var(--bg-elevated);
+  border-color: var(--line);
+  color: var(--ink);
+}
+
+html[data-theme="dark"] .admin-stat span {
+  color: var(--muted);
+}
+
+html[data-theme="dark"] .admin-chip--admin {
+  background: #1e3a5f;
+  color: #93c5fd;
+}
+
+html[data-theme="dark"] .messages-page {
+  background: var(--wa-shell) !important;
+  color: var(--wa-ink);
+}
+
+html[data-theme="light"] .messages-page {
+  background: var(--wa-shell) !important;
+  color: var(--wa-ink);
+}
+
+html[data-theme="dark"] .app-menu-panel a:hover,
+html[data-theme="dark"] .app-menu-logout:hover {
+  background: #1f2937;
+}
+
+html[data-theme="dark"] .app-menu-close {
+  background: #1f2937;
+  color: #e5e7eb;
 }

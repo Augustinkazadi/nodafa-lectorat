@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import BrandLogo from "@/components/BrandLogo";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -41,12 +42,15 @@ export default function RegisterPage() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 20 }}>
+    <div style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 20, position: "relative" }}>
+      <div style={{ position: "absolute", top: 16, right: 16 }}>
+        <ThemeToggle variant="pill" />
+      </div>
       <div className="nodafa-card nodafa-rise" style={{ width: "min(560px, 100%)", padding: 28 }}>
         <div style={{ display: "grid", justifyItems: "center", marginBottom: 20, gap: 10 }}>
           <BrandLogo href="/" size={78} showText={false} />
           <div style={{ textAlign: "center" }}>
-            <div style={{ fontFamily: "var(--font-display)", fontSize: 28 }}>Rejoindre le Lectorat</div>
+            <div style={{ fontFamily: "var(--font-display)", fontSize: 28, color: "var(--ink)" }}>Rejoindre le Lectorat</div>
             <p style={{ margin: "6px 0 0", color: "var(--muted)" }}>Paroisse Notre-Dame de Fatima – Gombe</p>
           </div>
         </div>
@@ -95,7 +99,8 @@ const fieldStyle: React.CSSProperties = {
   padding: "12px 14px",
   border: "1px solid var(--line)",
   borderRadius: 14,
-  background: "#f8fafc",
+  background: "color-mix(in srgb, var(--bg) 85%, var(--bg-elevated))",
+  color: "var(--ink)",
   outline: "none",
 };
 

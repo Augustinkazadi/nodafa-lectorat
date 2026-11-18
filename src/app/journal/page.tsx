@@ -1421,16 +1421,18 @@ function extractYoutubeId(url: string) {
 }
 
 const cardStyle: React.CSSProperties = {
-  background: "rgba(255,255,255,0.96)",
+  background: "var(--bg-elevated)",
   borderRadius: 18,
-  boxShadow: "0 10px 30px rgba(15,23,42,0.08)",
-  border: "1px solid rgba(226,232,240,0.9)",
+  boxShadow: "var(--shadow)",
+  border: "1px solid var(--line)",
   padding: 12,
+  color: "var(--ink)",
 };
 
 const iconBtn: React.CSSProperties = {
   border: "none",
-  background: "#e4e6eb",
+  background: "color-mix(in srgb, var(--line) 80%, var(--bg-elevated))",
+  color: "var(--ink)",
   width: 32,
   height: 32,
   borderRadius: "50%",
@@ -1440,7 +1442,8 @@ const iconBtn: React.CSSProperties = {
 
 const miniMediaBtn: React.CSSProperties = {
   border: "none",
-  background: "#f0f2f5",
+  background: "color-mix(in srgb, var(--bg) 70%, var(--line))",
+  color: "var(--ink)",
   width: 36,
   height: 36,
   borderRadius: "50%",

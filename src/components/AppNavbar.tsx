@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
 import PresenceHeartbeat from "@/components/PresenceHeartbeat";
+import ThemeToggle from "@/components/ThemeToggle";
 
 type AppNavbarProps = {
   userName?: string | null;
@@ -76,6 +77,7 @@ export default function AppNavbar({
 
           <div className="app-navbar__actions">
             <div className="app-navbar__desktop-only">
+              <ThemeToggle variant="icon" />
               <Link
                 href="/lecture-du-jour"
                 className={`app-nav-icon ${active === "lecture" ? "is-active" : ""}`}
@@ -217,6 +219,7 @@ export default function AppNavbar({
             <Link href="/calendrier" onClick={() => setMenuOpen(false)}>
               📅 Calendrier
             </Link>
+            <ThemeToggle variant="menu" />
             {isAdmin && (
               <>
                 <div style={{ padding: "10px 12px 4px", color: "#94a3b8", fontSize: 11, fontWeight: 800, letterSpacing: "0.06em" }}>
