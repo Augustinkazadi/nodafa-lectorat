@@ -4,7 +4,8 @@ import { authOptions } from "../auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 import { saveUploadedFile } from "@/lib/upload";
 import { liveEventLabel } from "@/lib/liveEvents";
-import { dateAtNoon, dateKey, getOrSyncTodayReading } from "@/lib/aelf";
+import { findReadingByIso, getOrSyncTodayReading } from "@/lib/aelf";
+import { dateAtMidnight, dateKey } from "@/lib/datetime";
 
 export async function GET() {
   try {
@@ -27,20 +28,18 @@ export async function GET() {
       },
     });
 
-    // Journal : une lecture par jour, au fur et à mesure (aujourd’hui + jours déjà passés).
-    // Les dimanches à venir restent sur /lecture-du-jour pour préparer la messe.
-    // Calendrier liturgique (LiturgicalEvent) → UNIQUEMENT /calendrier
+    // Journal : uniquement la lecture d’aujourd’hui (00h00 Kinshasa).
+    // Les jours passés et les dimanches à venir restent sur /lecture-du-jour.
+    let todayReading = null as Awaited<ReturnType<typeof getOrSyncTodayReading>>;
     try {
-      await getOrSyncTodayReading();
+      todayReading = await getOrSyncTodayReading();
     } catch {
       /* ignore sync errors in feed */
     }
-    const todayEnd = dateAtNoon(dateKey());
-    const readings = await prisma.dailyReading.findMany({
-      where: { date: { lte: todayEnd } },
-      orderBy: { date: "desc" },
-      take: 14,
-    });
+    if (!todayReading) {
+      todayReading = await findReadingByIso(dateKey());
+    }
+    const readings = todayReading ? [todayReading] : [];
     const lives = await prisma.live.findMany({
       orderBy: { createdAt: "desc" },
       take: 20,
@@ -57,6 +56,7 @@ export async function GET() {
       };
     });
 
+    const todayIso = dateKey();
     const formattedReadings = readings.map((r) => ({
       id: `reading_${r.id}`,
       feedType: "ADMIN_READING",
@@ -73,8 +73,8 @@ export async function GET() {
       image: r.image || null,
       mediaUrl: r.image || null,
       mediaType: r.image ? "IMAGE" : null,
-      // Tri du fil selon le jour liturgique (lun→dim inclus)
-      createdAt: r.date,
+      // Apparition fixe à 00h00 (Kinshasa) pour le jour liturgique
+      createdAt: dateAtMidnight(todayIso),
       author: { prenom: "Paroisse Notre Dame de Fatima", nom: "", photo: null },
       likes: [],
       comments: [],

@@ -284,7 +284,7 @@ export default function LivePage() {
                     <div style={{ fontSize: 12, color: "#fca5a5", marginBottom: 4 }}>{liveEventLabel(live.eventType)}</div>
                     <div style={{ fontWeight: 700 }}>{live.title}</div>
                     <div style={{ color: "var(--muted)", fontSize: 13, marginTop: 2 }}>
-                      {new Date(live.createdAt).toLocaleString("fr-FR")} · 👍 {live.likesCount || 0} · 💬 {live.commentsCount || 0}
+                      {new Date(live.createdAt).toLocaleString("fr-FR", { timeZone: "Africa/Kinshasa" })} · 👍 {live.likesCount || 0} · 💬 {live.commentsCount || 0}
                     </div>
                   </div>
                   <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
@@ -405,7 +405,7 @@ function LiveSocial({
                 {c.user?.prenom} {c.user?.nom}
               </strong>
               <div style={{ fontSize: 14, marginTop: 2 }}>{c.content}</div>
-              <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 4 }}>{new Date(c.createdAt).toLocaleString("fr-FR")}</div>
+              <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 4 }}>{new Date(c.createdAt).toLocaleString("fr-FR", { timeZone: "Africa/Kinshasa" })}</div>
             </div>
           </div>
         ))}

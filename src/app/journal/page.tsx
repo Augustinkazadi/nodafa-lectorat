@@ -1424,6 +1424,7 @@ function ComposerAction({ label, color, onClick }: { label: string; color: strin
 
 function formatDateTime(value: string) {
   return new Date(value).toLocaleString("fr-FR", {
+    timeZone: "Africa/Kinshasa",
     day: "numeric",
     month: "short",
     hour: "2-digit",

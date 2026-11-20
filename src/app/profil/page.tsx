@@ -446,7 +446,7 @@ export default function ProfilPage() {
                       <div>
                         <div style={{ fontWeight: 700 }}>{fullName}</div>
                         <div style={{ fontSize: 12, color: "var(--muted-2)" }}>
-                          {new Date(post.createdAt).toLocaleString("fr-FR")}
+                          {new Date(post.createdAt).toLocaleString("fr-FR", { timeZone: "Africa/Kinshasa" })}
                         </div>
                       </div>
                     </div>

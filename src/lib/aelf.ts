@@ -6,6 +6,9 @@ import {
   liturgicalSeasonLabel,
   nextSundayDates,
 } from "@/lib/liturgicalTitle";
+import { dateAtMidnight, dateAtNoon, dateKey, dayRange } from "@/lib/datetime";
+
+export { dateAtMidnight, dateAtNoon, dateKey } from "@/lib/datetime";
 
 const ZONE = process.env.AELF_ZONE || "afrique";
 
@@ -37,15 +40,13 @@ function formatBlock(lecture: any) {
   return parts.join("\n\n") || null;
 }
 
-export function dateKey(d = new Date()) {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
-}
-
-export function dateAtNoon(isoDate: string) {
-  return new Date(`${isoDate}T12:00:00.000Z`);
+export async function findReadingByIso(isoDate: string) {
+  const { start, end } = dayRange(isoDate);
+  // Couvre minuit Kinshasa + anciennes lignes stockées à midi UTC
+  return prisma.dailyReading.findFirst({
+    where: { date: { gte: start, lte: end } },
+    orderBy: { date: "asc" },
+  });
 }
 
 export async function fetchAelfMesse(isoDate: string) {
@@ -96,18 +97,21 @@ export async function syncDailyReadingFromAelf(isoDate = dateKey()) {
     isSunday: sunday,
   };
 
-  const date = dateAtNoon(isoDate);
+  const existing = await findReadingByIso(isoDate);
+  if (existing) {
+    return prisma.dailyReading.update({
+      where: { id: existing.id },
+      data: {
+        ...payload,
+        // Normalise l’heure d’apparition au journal : 00h00 Kinshasa
+        date: dateAtMidnight(isoDate),
+      },
+    });
+  }
 
-  const reading = await prisma.dailyReading.upsert({
-    where: { date },
-    create: { date, ...payload },
-    update: {
-      ...payload,
-      // ne pas écraser une image ajoutée manuellement par l'admin
-    },
+  return prisma.dailyReading.create({
+    data: { date: dateAtMidnight(isoDate), ...payload },
   });
-
-  return reading;
 }
 
 export async function syncUpcomingSundays(count = 6) {
@@ -130,9 +134,22 @@ export async function syncCurrentWeek() {
 }
 
 export async function getOrSyncReading(isoDate = dateKey()) {
-  const date = dateAtNoon(isoDate);
-  const existing = await prisma.dailyReading.findUnique({ where: { date } });
-  if (existing) return existing;
+  const existing = await findReadingByIso(isoDate);
+  if (existing) {
+    // Anciennes lectures à midi UTC → ramener à 00h00 Kinshasa
+    const target = dateAtMidnight(isoDate).getTime();
+    if (existing.date.getTime() !== target) {
+      try {
+        return await prisma.dailyReading.update({
+          where: { id: existing.id },
+          data: { date: dateAtMidnight(isoDate) },
+        });
+      } catch {
+        return existing;
+      }
+    }
+    return existing;
+  }
   try {
     return await syncDailyReadingFromAelf(isoDate);
   } catch (error) {

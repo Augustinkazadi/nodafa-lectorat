@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
-import { dateAtNoon } from "@/lib/aelf";
+import { findReadingByIso } from "@/lib/aelf";
+import { dateAtMidnight } from "@/lib/datetime";
 
 export async function GET() {
   try {
@@ -34,7 +35,7 @@ export async function POST(req: Request) {
     }
 
     const iso = String(dateRaw).slice(0, 10);
-    const date = dateAtNoon(iso);
+    const date = dateAtMidnight(iso);
 
     const yearRaw = String(body.liturgicalYear || "").toUpperCase();
     const liturgicalYear = ["A", "B", "C"].includes(yearRaw) ? yearRaw : null;
@@ -44,38 +45,37 @@ export async function POST(req: Request) {
         ? body.isSunday
         : new Date(`${iso}T12:00:00.000Z`).getUTCDay() === 0 || /dimanche/i.test(title);
 
-    const reading = await prisma.dailyReading.upsert({
-      where: { date },
-      create: {
-        title,
-        gospel,
-        date,
-        firstReading: firstReading || null,
-        psalm: body.psalm || null,
-        secondReading: (body.secondReading || "").trim() || null,
-        liturgicalColor: body.liturgicalColor || null,
-        commentary: body.commentary || null,
-        image: body.image || null,
-        source: body.source || "manuel",
-        liturgicalYear,
-        liturgicalSeason,
-        isSunday,
-      },
-      update: {
-        title,
-        gospel,
-        firstReading: firstReading || null,
-        psalm: body.psalm || null,
-        secondReading: (body.secondReading || "").trim() || null,
-        liturgicalColor: body.liturgicalColor || null,
-        commentary: body.commentary || null,
-        ...(body.image ? { image: body.image } : {}),
-        source: body.source || "manuel",
-        liturgicalYear,
-        liturgicalSeason,
-        isSunday,
-      },
-    });
+    const payload = {
+      title,
+      gospel,
+      firstReading: firstReading || null,
+      psalm: body.psalm || null,
+      secondReading: (body.secondReading || "").trim() || null,
+      liturgicalColor: body.liturgicalColor || null,
+      commentary: body.commentary || null,
+      source: body.source || "manuel",
+      liturgicalYear,
+      liturgicalSeason,
+      isSunday,
+    };
+
+    const existing = await findReadingByIso(iso);
+    const reading = existing
+      ? await prisma.dailyReading.update({
+          where: { id: existing.id },
+          data: {
+            ...payload,
+            date,
+            ...(body.image ? { image: body.image } : {}),
+          },
+        })
+      : await prisma.dailyReading.create({
+          data: {
+            ...payload,
+            date,
+            image: body.image || null,
+          },
+        });
 
     return NextResponse.json(reading);
   } catch (error: any) {

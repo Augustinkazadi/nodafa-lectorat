@@ -23,16 +23,16 @@ type Reading = {
 };
 
 function isoDay(d: string | Date) {
-  const x = new Date(d);
-  return x.toISOString().slice(0, 10);
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Africa/Kinshasa",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date(d));
 }
 
 function todayIso() {
-  const n = new Date();
-  const y = n.getFullYear();
-  const m = String(n.getMonth() + 1).padStart(2, "0");
-  const day = String(n.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
+  return isoDay(new Date());
 }
 
 export default function LectureDuJourPage() {
@@ -107,8 +107,8 @@ export default function LectureDuJourPage() {
       <main style={{ maxWidth: 860, margin: "0 auto", padding: "20px 16px 36px" }}>
         <h1 style={{ margin: "0 0 8px", fontFamily: "var(--font-display)", fontSize: 30 }}>Lectures</h1>
         <p style={{ margin: "0 0 12px", color: "var(--muted)", lineHeight: 1.45 }}>
-          Liste des dimanches pour préparer la messe à l’avance. Le Journal, lui, reçoit la lecture jour après jour
-          (aujourd’hui, puis demain, etc.).
+          Préparez les dimanches à l’avance ici. Le Journal n’affiche que la lecture du jour (à partir de 00h00) ;
+          les jours passés restent archivés sur cette page.
         </p>
 
         {(() => {

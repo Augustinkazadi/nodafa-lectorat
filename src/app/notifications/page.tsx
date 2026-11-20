@@ -180,7 +180,7 @@ export default function NotificationsPage() {
                   <div style={{ color: "var(--ink)", lineHeight: 1.5 }}>{notif.message}</div>
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 10, marginTop: 12, alignItems: "center" }}>
                     <span style={{ fontSize: 12, color: "var(--muted)" }}>
-                      {new Date(notif.createdAt).toLocaleString("fr-FR")}
+                      {new Date(notif.createdAt).toLocaleString("fr-FR", { timeZone: "Africa/Kinshasa" })}
                     </span>
                     <button
                       type="button"

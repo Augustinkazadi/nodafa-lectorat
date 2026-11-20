@@ -149,15 +149,15 @@ export default function AdminLecturesPage() {
     <AdminShell>
       <h1 style={{ margin: "0 0 8px", fontFamily: "var(--font-display)", fontSize: 30 }}>Lectures</h1>
       <p style={{ margin: "0 0 16px", color: "var(--muted)" }}>
-        Le <strong>Journal</strong> reçoit la lecture jour après jour (aujourd’hui, demain, etc.). Les{" "}
+        Le <strong>Journal</strong> n’affiche que la lecture du jour (à partir de 00h00, Kinshasa). Les{" "}
         <strong>dimanches à venir</strong> restent dans la liste Lecture pour préparer la messe.
       </p>
 
       <div className="admin-panel">
         <h2>Récupération automatique (AELF)</h2>
         <p style={{ marginTop: 0, color: "var(--muted)" }}>
-          « Lecture du jour » → visible tout de suite dans le Journal. Les dimanches à venir → liste de préparation
-          uniquement (pas tout d’un coup dans le fil).
+          « Lecture du jour » → une seule carte dans le Journal dès 00h00. Les jours passés sont archivés (page Lectures).
+          Les dimanches à venir → préparation uniquement.
         </p>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           <button

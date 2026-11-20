@@ -1,3 +1,5 @@
+import { dateKey } from "@/lib/datetime";
+
 /** Titres clairs pour le lectorat (temps + année A/B/C, sans mention du psautier). */
 
 export type AelfInformations = {
@@ -124,9 +126,14 @@ function toIsoUtc(d: Date) {
   return `${y}-${m}-${dayNum}`;
 }
 
+function kinshasaAnchor(from = new Date()) {
+  const iso = dateKey(from);
+  return new Date(`${iso}T12:00:00.000Z`);
+}
+
 export function nextSundayDates(count = 6, from = new Date()) {
   const dates: string[] = [];
-  const d = new Date(Date.UTC(from.getFullYear(), from.getMonth(), from.getDate(), 12));
+  const d = kinshasaAnchor(from);
   const day = d.getUTCDay();
   const add = day === 0 ? 0 : 7 - day;
   d.setUTCDate(d.getUTCDate() + add);
@@ -137,9 +144,9 @@ export function nextSundayDates(count = 6, from = new Date()) {
   return dates;
 }
 
-/** Lundi → dimanche de la semaine liturgique courante (pour le journal). */
+/** Lundi → dimanche de la semaine liturgique courante (fuseau Kinshasa). */
 export function currentWeekDates(from = new Date()) {
-  const d = new Date(Date.UTC(from.getFullYear(), from.getMonth(), from.getDate(), 12));
+  const d = kinshasaAnchor(from);
   const day = d.getUTCDay(); // 0=dimanche
   const mondayOffset = day === 0 ? -6 : 1 - day;
   d.setUTCDate(d.getUTCDate() + mondayOffset);

@@ -824,6 +824,7 @@ export default function MessagesPage() {
                                 {msg.isEdited && <span>modifié</span>}
                                 <span>
                                   {new Date(msg.createdAt).toLocaleTimeString("fr-FR", {
+                                    timeZone: "Africa/Kinshasa",
                                     hour: "2-digit",
                                     minute: "2-digit",
                                   })}
@@ -1246,11 +1247,12 @@ function mediaLabel(type: string, name?: string) {
 
 function shortTime(value: string) {
   const d = new Date(value);
-  const now = new Date();
-  if (d.toDateString() === now.toDateString()) {
-    return d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+  const kinshasaDay = (x: Date) =>
+    new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Kinshasa", year: "numeric", month: "2-digit", day: "2-digit" }).format(x);
+  if (kinshasaDay(d) === kinshasaDay(new Date())) {
+    return d.toLocaleTimeString("fr-FR", { timeZone: "Africa/Kinshasa", hour: "2-digit", minute: "2-digit" });
   }
-  return d.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" });
+  return d.toLocaleDateString("fr-FR", { timeZone: "Africa/Kinshasa", day: "2-digit", month: "2-digit" });
 }
 
 function groupByDate(messages: any[]) {
@@ -1266,12 +1268,13 @@ function groupByDate(messages: any[]) {
 
 function dayLabel(value: string) {
   const d = new Date(value);
+  const kinshasaDay = (x: Date) =>
+    new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Kinshasa", year: "numeric", month: "2-digit", day: "2-digit" }).format(x);
   const today = new Date();
-  const yesterday = new Date();
-  yesterday.setDate(today.getDate() - 1);
-  if (d.toDateString() === today.toDateString()) return "Aujourd'hui";
-  if (d.toDateString() === yesterday.toDateString()) return "Hier";
-  return d.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
+  const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+  if (kinshasaDay(d) === kinshasaDay(today)) return "Aujourd'hui";
+  if (kinshasaDay(d) === kinshasaDay(yesterday)) return "Hier";
+  return d.toLocaleDateString("fr-FR", { timeZone: "Africa/Kinshasa", weekday: "long", day: "numeric", month: "long" });
 }
 
 const listItemStyle: React.CSSProperties = {
