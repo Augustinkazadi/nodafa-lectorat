@@ -44,9 +44,15 @@ export default function MessagesPage() {
   const knownOnlineRef = useRef<Set<number>>(new Set());
   const presenceReadyRef = useRef(false);
 
-  const openProfilePhoto = (photo?: string | null, name?: string) => {
-    if (!photo) return;
-    setPhotoView({ src: photo, alt: name ? `Photo de ${name}` : "Photo de profil" });
+  const openProfilePhoto = (photo?: string | null, name?: string, e?: React.SyntheticEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    const src = typeof photo === "string" ? photo.trim() : "";
+    if (!src) return;
+    // Différer pour éviter qu’un clic tactile ferme tout de suite la visionneuse
+    window.setTimeout(() => {
+      setPhotoView({ src, alt: name ? `Photo de ${name}` : "Photo de profil" });
+    }, 0);
   };
 
   const backToDiscussionList = () => {
@@ -417,7 +423,12 @@ export default function MessagesPage() {
         onDismiss={(id) => setPresenceToasts((prev) => prev.filter((t) => t.id !== id))}
       />
       {photoView && (
-        <PhotoLightbox src={photoView.src} alt={photoView.alt} onClose={() => setPhotoView(null)} />
+        <PhotoLightbox
+          images={[photoView.src]}
+          index={0}
+          alt={photoView.alt}
+          onClose={() => setPhotoView(null)}
+        />
       )}
       <AppNavbar
         userName={session?.user?.name}
@@ -473,7 +484,7 @@ export default function MessagesPage() {
                 <div key={`online-${u.id}`} style={{ minWidth: 64, textAlign: "center" }}>
                   <button
                     type="button"
-                    onClick={() => (u.photo ? openProfilePhoto(u.photo, `${u.prenom} ${u.nom}`) : handleNewConversation(u.id))}
+                    onClick={(e) => (u.photo ? openProfilePhoto(u.photo, `${u.prenom} ${u.nom}`, e) : handleNewConversation(u.id))}
                     title={u.photo ? "Voir la photo" : `Écrire à ${u.prenom}`}
                     style={{ display: "block", border: "none", background: "transparent", padding: 0, margin: "0 auto", cursor: u.photo ? "zoom-in" : "pointer" }}
                   >
@@ -656,7 +667,7 @@ export default function MessagesPage() {
                 ) : peer ? (
                   <button
                     type="button"
-                    onClick={() => (peer.photo ? openProfilePhoto(peer.photo, title) : fetchMessages(conv.id))}
+                    onClick={(e) => (peer.photo ? openProfilePhoto(peer.photo, title, e) : fetchMessages(conv.id))}
                     title={peer.photo ? "Voir la photo" : "Ouvrir la discussion"}
                     style={{ border: "none", background: "transparent", padding: 0, cursor: peer.photo ? "zoom-in" : "pointer" }}
                   >
@@ -770,7 +781,7 @@ export default function MessagesPage() {
               ) : activePeer ? (
                 <button
                   type="button"
-                  onClick={() => openProfilePhoto(activePeer.photo, `${activePeer.prenom} ${activePeer.nom}`)}
+                  onClick={(e) => openProfilePhoto(activePeer.photo, `${activePeer.prenom} ${activePeer.nom}`, e)}
                   title={activePeer.photo ? "Agrandir la photo" : "Pas de photo"}
                   aria-label="Agrandir la photo de profil"
                   style={{
@@ -780,6 +791,8 @@ export default function MessagesPage() {
                     cursor: activePeer.photo ? "zoom-in" : "default",
                     flexShrink: 0,
                     borderRadius: "50%",
+                    position: "relative",
+                    zIndex: 2,
                   }}
                 >
                   <Avatar src={activePeer.photo} name={activePeer.prenom || "U"} size={44} online={isOnline(activePeer.lastSeenAt)} />
@@ -862,7 +875,7 @@ export default function MessagesPage() {
                         {showSenderAvatar && (
                           <button
                             type="button"
-                            onClick={() => openProfilePhoto(sender.photo, `${sender.prenom || ""} ${sender.nom || ""}`)}
+                            onClick={(e) => openProfilePhoto(sender.photo, `${sender.prenom || ""} ${sender.nom || ""}`, e)}
                             title={sender.photo ? "Voir la photo" : undefined}
                             style={{
                               border: "none",
@@ -870,6 +883,8 @@ export default function MessagesPage() {
                               padding: 0,
                               flexShrink: 0,
                               cursor: sender.photo ? "zoom-in" : "default",
+                              position: "relative",
+                              zIndex: 2,
                             }}
                           >
                             <Avatar src={sender.photo} name={sender.prenom || "U"} size={28} online={isOnline(sender.lastSeenAt)} />
@@ -955,7 +970,7 @@ export default function MessagesPage() {
                               <MessageBody
                                 msg={msg}
                                 mine={isMine}
-                                onOpenImage={(src) => openProfilePhoto(src, "Photo")}
+                                onOpenImage={(src, e) => openProfilePhoto(src, "Photo", e)}
                               />
                               <div
                                 style={{
@@ -1242,6 +1257,13 @@ export default function MessagesPage() {
   );
 }
 
+function isImageMedia(msg: any, mediaType: string | null) {
+  if (mediaType === "IMAGE" && msg.mediaUrl) return true;
+  if (!msg.mediaUrl) return false;
+  if (mediaType && mediaType !== "IMAGE") return false;
+  return /\.(jpe?g|png|gif|webp|bmp|heic)(\?|#|$)/i.test(String(msg.mediaUrl));
+}
+
 function MessageBody({
   msg,
   mine = false,
@@ -1249,16 +1271,20 @@ function MessageBody({
 }: {
   msg: any;
   mine?: boolean;
-  onOpenImage?: (src: string) => void;
+  onOpenImage?: (src: string, e?: React.SyntheticEvent) => void;
 }) {
   const mediaType = resolveMessageMediaType(msg);
 
-  if (mediaType === "IMAGE" && msg.mediaUrl) {
+  if (isImageMedia(msg, mediaType)) {
     return (
       <div>
         <button
           type="button"
-          onClick={() => onOpenImage?.(msg.mediaUrl)}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onOpenImage?.(msg.mediaUrl, e);
+          }}
           title="Agrandir la photo"
           style={{
             display: "block",
@@ -1268,17 +1294,22 @@ function MessageBody({
             background: "transparent",
             cursor: "zoom-in",
             marginBottom: msg.content ? 6 : 0,
+            position: "relative",
+            zIndex: 2,
           }}
         >
           <img
             src={msg.mediaUrl}
             alt=""
+            draggable={false}
             style={{
               maxWidth: "100%",
               maxHeight: 320,
+              width: "100%",
               borderRadius: 8,
               display: "block",
               objectFit: "cover",
+              pointerEvents: "none",
             }}
           />
         </button>
@@ -1339,10 +1370,14 @@ function MessageBody({
         {src && (
           <button
             type="button"
-            onClick={() => onOpenImage?.(src)}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onOpenImage?.(src, e);
+            }}
             style={{ display: "block", padding: 0, border: "none", background: "transparent", cursor: "zoom-in" }}
           >
-            <img src={src} alt="" style={{ maxWidth: 240, borderRadius: 8, display: "block" }} />
+            <img src={src} alt="" draggable={false} style={{ maxWidth: 240, borderRadius: 8, display: "block", pointerEvents: "none" }} />
           </button>
         )}
         {text && <div style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{text}</div>}

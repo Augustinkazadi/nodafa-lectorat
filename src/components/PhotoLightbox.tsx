@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 type Props = {
   src?: string;
@@ -11,10 +12,11 @@ type Props = {
 };
 
 /**
- * Visionneuse style Facebook : plein écran + pinch / double-tap + galerie.
+ * Visionneuse plein écran (portail body) : pinch / double-tap + téléchargement.
  */
 export default function PhotoLightbox({ src, images, index = 0, alt = "Photo", onClose }: Props) {
   const gallery = images && images.length ? images : src ? [src] : [];
+  const [mounted, setMounted] = useState(false);
   const [current, setCurrent] = useState(Math.min(Math.max(0, index), Math.max(0, gallery.length - 1)));
   const [scale, setScale] = useState(1);
   const [tx, setTx] = useState(0);
@@ -29,6 +31,10 @@ export default function PhotoLightbox({ src, images, index = 0, alt = "Photo", o
   const lastTap = useRef(0);
 
   const activeSrc = gallery[current] || "";
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     setCurrent(Math.min(Math.max(0, index), Math.max(0, gallery.length - 1)));
@@ -151,9 +157,9 @@ export default function PhotoLightbox({ src, images, index = 0, alt = "Photo", o
     resetIfNeeded(next);
   };
 
-  if (!activeSrc) return null;
+  if (!mounted || !activeSrc) return null;
 
-  return (
+  const ui = (
     <div
       role="dialog"
       aria-modal="true"
@@ -162,7 +168,7 @@ export default function PhotoLightbox({ src, images, index = 0, alt = "Photo", o
       style={{
         position: "fixed",
         inset: 0,
-        zIndex: 250,
+        zIndex: 2147483000,
         background: "rgba(0,0,0,0.94)",
         display: "flex",
         flexDirection: "column",
@@ -267,6 +273,8 @@ export default function PhotoLightbox({ src, images, index = 0, alt = "Photo", o
       </div>
     </div>
   );
+
+  return createPortal(ui, document.body);
 }
 
 function NavBtn({ side, onClick }: { side: "left" | "right"; onClick: () => void }) {
