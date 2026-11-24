@@ -43,7 +43,7 @@ export default function LectureDuJourPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [unreadCount, setUnreadCount] = useState({ notifications: 0, messages: 0 });
-  const [filter, setFilter] = useState<"all" | "sundays" | "upcoming">("sundays");
+  const [filter, setFilter] = useState<"sundays" | "weekdays" | "all">("sundays");
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login");
@@ -79,15 +79,31 @@ export default function LectureDuJourPage() {
 
   const today = todayIso();
 
+  const isDominical = (r: Reading) => {
+    if (r.isSunday) return true;
+    if (/dimanche/i.test(r.title || "")) return true;
+    const weekday = new Intl.DateTimeFormat("en-US", {
+      timeZone: "Africa/Kinshasa",
+      weekday: "short",
+    }).format(new Date(r.date));
+    return weekday === "Sun";
+  };
+
+  const counts = useMemo(() => {
+    const sundays = readings.filter(isDominical).length;
+    const weekdays = readings.filter((r) => !isDominical(r)).length;
+    return { sundays, weekdays, all: readings.length };
+  }, [readings]);
+
   const visible = useMemo(() => {
     let list = [...readings];
     if (filter === "sundays") {
-      list = list.filter((r) => r.isSunday || /dimanche/i.test(r.title));
-    } else if (filter === "upcoming") {
-      list = list.filter((r) => isoDay(r.date) >= today);
+      list = list.filter(isDominical);
+    } else if (filter === "weekdays") {
+      list = list.filter((r) => !isDominical(r));
     }
     return list.sort((a, b) => isoDay(a.date).localeCompare(isoDay(b.date)));
-  }, [readings, filter, today]);
+  }, [readings, filter]);
 
   if (status === "loading" || loading) {
     return <div style={{ padding: 50, textAlign: "center" }}>Chargement des lectures...</div>;
@@ -107,8 +123,8 @@ export default function LectureDuJourPage() {
       <main style={{ maxWidth: 860, margin: "0 auto", padding: "20px 16px 36px" }}>
         <h1 style={{ margin: "0 0 8px", fontFamily: "var(--font-display)", fontSize: 30 }}>Lectures</h1>
         <p style={{ margin: "0 0 12px", color: "var(--muted)", lineHeight: 1.45 }}>
-          Préparez les dimanches à l’avance ici. Le Journal n’affiche que la lecture du jour (à partir de 00h00) ;
-          les jours passés restent archivés sur cette page.
+          Messes dominicales, messes de la semaine, ou toutes les lectures. Le Journal n’affiche que la lecture du
+          jour (à partir de 00h00) ; ici vous gardez l’archive complète.
         </p>
 
         {(() => {
@@ -149,17 +165,23 @@ export default function LectureDuJourPage() {
           </div>
         )}
 
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
+        <div
+          role="tablist"
+          aria-label="Rubriques des lectures"
+          style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}
+        >
           {(
             [
-              ["sundays", "Dimanches"],
-              ["upcoming", "À venir"],
-              ["all", "Toutes"],
+              ["sundays", "Messes dominicales", counts.sundays],
+              ["weekdays", "Messes de la semaine", counts.weekdays],
+              ["all", "Toutes", counts.all],
             ] as const
-          ).map(([key, label]) => (
+          ).map(([key, label, count]) => (
             <button
               key={key}
               type="button"
+              role="tab"
+              aria-selected={filter === key}
               onClick={() => setFilter(key)}
               className="nodafa-btn nodafa-btn-ghost"
               style={{
@@ -170,6 +192,7 @@ export default function LectureDuJourPage() {
               }}
             >
               {label}
+              <span style={{ marginLeft: 6, opacity: 0.85, fontWeight: 700 }}>({count})</span>
             </button>
           ))}
         </div>
@@ -177,13 +200,18 @@ export default function LectureDuJourPage() {
         <div style={{ display: "grid", gap: 10 }}>
           {visible.length === 0 && (
             <div className="nodafa-card" style={{ padding: 20, color: "var(--muted)" }}>
-              Aucune lecture publiée pour ce filtre. Un admin peut publier les prochains dimanches depuis l’espace Lectures.
+              {filter === "sundays"
+                ? "Aucune messe dominicale publiée pour le moment."
+                : filter === "weekdays"
+                  ? "Aucune messe de la semaine publiée pour le moment."
+                  : "Aucune lecture publiée. Un admin peut en ajouter depuis l’espace Lectures."}
             </div>
           )}
           {visible.map((r) => {
             const day = isoDay(r.date);
             const isToday = day === today;
             const isFuture = day > today;
+            const sunday = isDominical(r);
             return (
               <button
                 key={r.id}
@@ -204,6 +232,7 @@ export default function LectureDuJourPage() {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 12, color: "var(--muted)", fontWeight: 700 }}>
                       {new Date(r.date).toLocaleDateString("fr-FR", {
+                        timeZone: "Africa/Kinshasa",
                         weekday: "long",
                         day: "numeric",
                         month: "long",
@@ -216,6 +245,15 @@ export default function LectureDuJourPage() {
                     <div style={{ marginTop: 8, color: "var(--link)", fontWeight: 700, fontSize: 13 }}>Ouvrir les lectures →</div>
                   </div>
                   <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "flex-start" }}>
+                    {sunday ? (
+                      <span className="admin-chip" style={{ background: "color-mix(in srgb, var(--brand) 18%, var(--bg-elevated))", color: "var(--brand)" }}>
+                        Dominicale
+                      </span>
+                    ) : (
+                      <span className="admin-chip" style={{ background: "var(--bg-soft)", color: "var(--muted)" }}>
+                        Semaine
+                      </span>
+                    )}
                     {isToday && <span className="admin-chip admin-chip--admin">Aujourd’hui</span>}
                     {isFuture && <span className="admin-chip admin-chip--ok">À préparer</span>}
                     {r.liturgicalSeason && (
