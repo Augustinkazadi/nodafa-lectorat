@@ -367,6 +367,28 @@ export default function MessagesPage() {
     return withPhoto(peer);
   }, [receiverId, activeConvId, activeConv, users, usersById, userId]);
 
+  // Si la photo manque encore dans la conversation, la récupérer
+  useEffect(() => {
+    if (!activePeer?.id || activePeer.photo) return;
+    let cancelled = false;
+    fetch(`/api/presence?ids=${activePeer.id}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((list) => {
+        if (cancelled || !Array.isArray(list) || !list[0]?.photo) return;
+        setUsers((prev) => {
+          const exists = prev.some((u) => u.id === list[0].id);
+          if (exists) {
+            return prev.map((u) => (u.id === list[0].id ? { ...u, photo: list[0].photo, lastSeenAt: list[0].lastSeenAt } : u));
+          }
+          return [...prev, list[0]];
+        });
+      })
+      .catch(() => null);
+    return () => {
+      cancelled = true;
+    };
+  }, [activePeer?.id, activePeer?.photo]);
+
   const filteredConversations = conversations.filter((conv) => {
     if (!search.trim()) return true;
     const peer = conv.participants.map((p: any) => p.user).find((u: any) => u.id !== userId);
@@ -749,18 +771,21 @@ export default function MessagesPage() {
                 <button
                   type="button"
                   onClick={() => openProfilePhoto(activePeer.photo, `${activePeer.prenom} ${activePeer.nom}`)}
-                  title={activePeer.photo ? "Voir la photo de profil" : undefined}
+                  title={activePeer.photo ? "Agrandir la photo" : "Pas de photo"}
+                  aria-label="Agrandir la photo de profil"
                   style={{
                     border: "none",
                     background: "transparent",
                     padding: 0,
                     cursor: activePeer.photo ? "zoom-in" : "default",
+                    flexShrink: 0,
+                    borderRadius: "50%",
                   }}
                 >
-                  <Avatar src={activePeer.photo} name={activePeer.prenom || "U"} size={40} online={isOnline(activePeer.lastSeenAt)} />
+                  <Avatar src={activePeer.photo} name={activePeer.prenom || "U"} size={44} online={isOnline(activePeer.lastSeenAt)} />
                 </button>
               ) : (
-                <Avatar src={null} name="U" size={40} />
+                <Avatar src={null} name="U" size={44} />
               )}
               {activeConv?.isBroadcast ? (
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -927,7 +952,11 @@ export default function MessagesPage() {
                             </div>
                           ) : (
                             <>
-                              <MessageBody msg={msg} mine={isMine} />
+                              <MessageBody
+                                msg={msg}
+                                mine={isMine}
+                                onOpenImage={(src) => openProfilePhoto(src, "Photo")}
+                              />
                               <div
                                 style={{
                                   display: "flex",
@@ -1213,15 +1242,46 @@ export default function MessagesPage() {
   );
 }
 
-function MessageBody({ msg, mine = false }: { msg: any; mine?: boolean }) {
+function MessageBody({
+  msg,
+  mine = false,
+  onOpenImage,
+}: {
+  msg: any;
+  mine?: boolean;
+  onOpenImage?: (src: string) => void;
+}) {
   const mediaType = resolveMessageMediaType(msg);
 
   if (mediaType === "IMAGE" && msg.mediaUrl) {
     return (
       <div>
-        <a href={msg.mediaUrl} target="_blank" rel="noreferrer">
-          <img src={msg.mediaUrl} alt="" style={{ maxWidth: "100%", borderRadius: 8, display: "block", marginBottom: msg.content ? 6 : 0 }} />
-        </a>
+        <button
+          type="button"
+          onClick={() => onOpenImage?.(msg.mediaUrl)}
+          title="Agrandir la photo"
+          style={{
+            display: "block",
+            width: "100%",
+            padding: 0,
+            border: "none",
+            background: "transparent",
+            cursor: "zoom-in",
+            marginBottom: msg.content ? 6 : 0,
+          }}
+        >
+          <img
+            src={msg.mediaUrl}
+            alt=""
+            style={{
+              maxWidth: "100%",
+              maxHeight: 320,
+              borderRadius: 8,
+              display: "block",
+              objectFit: "cover",
+            }}
+          />
+        </button>
         {msg.content && <div style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{msg.content}</div>}
       </div>
     );
@@ -1276,7 +1336,15 @@ function MessageBody({ msg, mine = false }: { msg: any; mine?: boolean }) {
     const text = msg.content.replace(/<img[\s\S]*?\/>/g, "").trim();
     return (
       <div>
-        {src && <img src={src} alt="" style={{ maxWidth: 240, borderRadius: 8 }} />}
+        {src && (
+          <button
+            type="button"
+            onClick={() => onOpenImage?.(src)}
+            style={{ display: "block", padding: 0, border: "none", background: "transparent", cursor: "zoom-in" }}
+          >
+            <img src={src} alt="" style={{ maxWidth: 240, borderRadius: 8, display: "block" }} />
+          </button>
+        )}
         {text && <div style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{text}</div>}
       </div>
     );
@@ -1320,7 +1388,19 @@ function Avatar({
   return (
     <div style={{ position: "relative", width: size, height: size, flexShrink: 0 }}>
       {src ? (
-        <img src={src} alt="" style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover", display: "block" }} />
+        <img
+          src={src}
+          alt=""
+          style={{
+            width: size,
+            height: size,
+            borderRadius: "50%",
+            objectFit: "cover",
+            display: "block",
+            background: "var(--wa-panel-2)",
+            border: "1px solid var(--wa-line)",
+          }}
+        />
       ) : (
         <div
           style={{
@@ -1333,6 +1413,7 @@ function Avatar({
             alignItems: "center",
             justifyContent: "center",
             fontWeight: 800,
+            fontSize: size * 0.38,
           }}
         >
           {(name || "U").charAt(0).toUpperCase()}
@@ -1342,14 +1423,15 @@ function Avatar({
         title={online ? "En ligne" : "Hors ligne"}
         style={{
           position: "absolute",
-          right: 1,
-          bottom: 1,
+          right: 0,
+          bottom: 0,
           width: Math.max(10, size * 0.28),
           height: Math.max(10, size * 0.28),
           borderRadius: "50%",
           background: online ? "var(--online)" : "var(--muted)",
           border: "2px solid var(--wa-panel)",
           boxSizing: "border-box",
+          pointerEvents: "none",
         }}
       />
     </div>
