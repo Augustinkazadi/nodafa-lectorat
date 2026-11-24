@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
 import AppNavbar from "@/components/AppNavbar";
 import PhotoLightbox from "@/components/PhotoLightbox";
 import { uploadMediaFile } from "@/lib/clientUpload";
@@ -29,9 +28,6 @@ export default function ProfilPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const viewId = searchParams.get("id");
-  const from = searchParams.get("from");
-  const backHref = from === "messages" ? "/messages" : "/journal";
-  const backLabel = from === "messages" ? "← Retour aux discussions" : "← Retour au journal";
 
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -160,8 +156,8 @@ export default function ProfilPage() {
     return (
       <div style={{ padding: 50, textAlign: "center" }}>
         <p>{statusMsg || "Profil introuvable."}</p>
-        <button type="button" onClick={() => router.push(backHref)} style={primaryBtn}>
-          {backLabel}
+        <button type="button" onClick={() => router.push("/journal")} style={primaryBtn}>
+          Retour au journal
         </button>
       </div>
     );
@@ -205,24 +201,6 @@ export default function ProfilPage() {
       />
 
       <main style={{ maxWidth: 940, margin: "0 auto", padding: "0 0 40px" }}>
-        <div style={{ padding: "10px 16px 0", display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-          <button type="button" onClick={() => router.push(backHref)} style={{ ...primaryBtn, background: "var(--bg-soft)", color: "var(--ink)" }}>
-            {backLabel}
-          </button>
-          {!profile.isOwnProfile && (
-            <Link
-              href="/messages"
-              onClick={(e) => {
-                e.preventDefault();
-                router.push("/messages");
-              }}
-              style={{ ...primaryBtn, textDecoration: "none" }}
-            >
-              💬 Messages
-            </Link>
-          )}
-        </div>
-
         {/* Couverture + avatar */}
         <section
           style={{
@@ -374,8 +352,8 @@ export default function ProfilPage() {
               )}
             </div>
 
-            <div style={{ display: "flex", gap: 8, paddingBottom: 8, flexWrap: "wrap" }}>
-              {profile.isOwnProfile && (
+            {profile.isOwnProfile && (
+              <div style={{ display: "flex", gap: 8, paddingBottom: 8 }}>
                 <button
                   type="button"
                   onClick={() => {
@@ -386,11 +364,8 @@ export default function ProfilPage() {
                 >
                   {editing ? "Fermer" : "Modifier le profil"}
                 </button>
-              )}
-              <a href="#journal" style={{ ...primaryBtn, textDecoration: "none", background: "var(--bg-soft)", color: "var(--ink)" }}>
-                📰 Voir son journal
-              </a>
-            </div>
+              </div>
+            )}
           </div>
         </section>
 
@@ -495,13 +470,10 @@ export default function ProfilPage() {
             </div>
           </aside>
 
-          {/* Journal / Publications */}
-          <section id="journal">
-            <div style={{ ...card, marginBottom: 12, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-              <h2 style={{ margin: 0, fontSize: 18 }}>Journal · Publications</h2>
-              <a href="#journal" style={{ color: "var(--link)", fontWeight: 700, fontSize: 13, textDecoration: "none" }}>
-                Voir le journal
-              </a>
+          {/* Publications */}
+          <section>
+            <div style={{ ...card, marginBottom: 12 }}>
+              <h2 style={{ margin: 0, fontSize: 18 }}>Publications</h2>
             </div>
             {(profile.posts || []).length === 0 ? (
               <div style={{ ...card, color: "var(--muted-2)", textAlign: "center" }}>Aucune publication pour le moment.</div>

@@ -12,7 +12,7 @@ import PresenceToastStack from "@/components/PresenceToast";
 import PhotoLightbox from "@/components/PhotoLightbox";
 
 const EMOJIS = ["😀", "😂", "🙏", "❤️", "👍", "🎉", "🔥", "😊", "🙌", "✝️", "😇", "👏"];
-const PROFILE_FROM_MESSAGES = "/profil?from=messages&id=";
+const profileUrl = (id: number) => `/profil?id=${id}`;
 
 export default function MessagesPage() {
   const { data: session, status } = useSession();
@@ -49,7 +49,15 @@ export default function MessagesPage() {
     setPhotoView({ src: photo, alt: name ? `Photo de ${name}` : "Photo de profil" });
   };
 
-  const profileUrl = (id: number) => `${PROFILE_FROM_MESSAGES}${id}`;
+  const backToDiscussionList = () => {
+    setMobileShowChat(false);
+    setActiveConvId(null);
+    setReceiverId(null);
+    setMessages([]);
+    setReplyTo(null);
+    setEditingId(null);
+    setShowEmoji(false);
+  };
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -713,13 +721,11 @@ export default function MessagesPage() {
             >
               <button
                 type="button"
-                onClick={() => {
-                  setMobileShowChat(false);
-                  setActiveConvId(null);
-                  setReceiverId(null);
-                }}
-                style={{ ...ghostBtn, display: "inline-flex" }}
+                onClick={backToDiscussionList}
+                style={{ ...ghostBtn, display: "inline-flex", fontSize: 20, fontWeight: 700, minWidth: 36 }}
                 className="wa-back"
+                title="Retour à la liste des discussions"
+                aria-label="Retour à la liste des discussions"
               >
                 ←
               </button>
@@ -1197,7 +1203,8 @@ export default function MessagesPage() {
         @media (min-width: 860px) {
           .wa-sidebar { display: flex !important; width: 34% !important; min-width: 300px !important; }
           .wa-chat { display: flex !important; }
-          .wa-back { display: none !important; }
+          /* Toujours afficher ← pour revenir à la liste et choisir une autre discussion */
+          .wa-back { display: inline-flex !important; }
           .messages-page--chat .messages-shell { height: 100dvh !important; }
         }
       `}</style>
