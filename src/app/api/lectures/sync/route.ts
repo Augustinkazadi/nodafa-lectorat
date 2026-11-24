@@ -76,7 +76,9 @@ export async function POST(req: Request) {
       return NextResponse.json({
         message: result.done
           ? `Année liturgique ${letter} : ${result.total} dimanches prêts`
-          : `Année ${letter} : ${result.nextOffset}/${result.total} dimanches importés…`,
+          : result.fetched
+            ? `Année ${letter} : ${result.nextOffset}/${result.total} (nouveaux: ${result.fetched})…`
+            : `Année ${letter} : catalogue déjà à jour (${result.nextOffset}/${result.total})`,
         ...result,
       });
     }

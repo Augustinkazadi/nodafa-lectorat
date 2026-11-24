@@ -120,9 +120,9 @@ export async function syncUpcomingSundays(count = 6) {
   const dates = nextSundayDates(count);
   const readings = [];
   for (const iso of dates) {
-    readings.push(await syncDailyReadingFromAelf(iso));
+    readings.push(await getOrSyncReading(iso));
   }
-  return readings;
+  return readings.filter(Boolean);
 }
 
 /** Publie lun–dim de la semaine en cours → visibles dans le journal chaque jour. */
@@ -130,12 +130,15 @@ export async function syncCurrentWeek() {
   const dates = currentWeekDates();
   const readings = [];
   for (const iso of dates) {
-    readings.push(await syncDailyReadingFromAelf(iso));
+    readings.push(await getOrSyncReading(iso));
   }
-  return readings;
+  return readings.filter(Boolean);
 }
 
-/** Importe les dimanches d’une année liturgique (par lots pour éviter les timeouts). */
+/**
+ * Importe les dimanches d’une année liturgique (par lots).
+ * Les dates déjà en base sont sautées (pas d’appel AELF).
+ */
 export async function syncLiturgicalYearSundays(
   letter: "A" | "B" | "C" = "B",
   opts?: { offset?: number; limit?: number }
@@ -143,12 +146,31 @@ export async function syncLiturgicalYearSundays(
   const { dates, adventYear, startIso, endIso } = sundaysOfLiturgicalYear(letter);
   const offset = Math.max(0, opts?.offset ?? 0);
   const limit = Math.min(12, Math.max(1, opts?.limit ?? 8));
-  const slice = dates.slice(offset, offset + limit);
   const readings = [];
-  for (const iso of slice) {
+  let i = offset;
+  let fetched = 0;
+
+  while (i < dates.length && fetched < limit) {
+    const iso = dates[i];
+    const existing = await findReadingByIso(iso);
+    if (existing) {
+      readings.push(existing);
+      i += 1;
+      continue;
+    }
     readings.push(await syncDailyReadingFromAelf(iso));
+    fetched += 1;
+    i += 1;
   }
-  const nextOffset = offset + slice.length;
+
+  // Avance vite sur les dates déjà présentes sans consommer le quota réseau
+  while (i < dates.length) {
+    const existing = await findReadingByIso(dates[i]);
+    if (!existing) break;
+    readings.push(existing);
+    i += 1;
+  }
+
   return {
     letter,
     adventYear,
@@ -156,20 +178,21 @@ export async function syncLiturgicalYearSundays(
     endIso,
     total: dates.length,
     offset,
-    nextOffset,
-    done: nextOffset >= dates.length,
+    nextOffset: i,
+    fetched,
+    done: i >= dates.length,
     readings,
   };
 }
 
-/** Prépare les messes de la semaine à venir (lun–sam). */
+/** Prépare les messes de la semaine à venir (lun–sam) — ignore si déjà en base. */
 export async function syncUpcomingWeekdays(count = 12) {
   const dates = upcomingWeekdayDates(count);
   const readings = [];
   for (const iso of dates) {
-    readings.push(await syncDailyReadingFromAelf(iso));
+    readings.push(await getOrSyncReading(iso));
   }
-  return readings;
+  return readings.filter(Boolean);
 }
 
 export async function getOrSyncReading(isoDate = dateKey()) {

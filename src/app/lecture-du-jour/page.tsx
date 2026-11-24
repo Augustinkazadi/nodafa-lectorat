@@ -57,7 +57,7 @@ export default function LectureDuJourPage() {
     return safe;
   };
 
-  /** Importe les dimanches année B + jours de semaine à venir (par lots). */
+  /** Complète le catalogue en arrière-plan (n’bloque pas l’affichage). */
   const ensureCatalog = async (list: Reading[]) => {
     try {
       const yearBSundays = list.filter(
@@ -78,27 +78,7 @@ export default function LectureDuJourPage() {
 
       let changed = false;
 
-      if (yearBSundays < 40) {
-        setSyncProgress("Import des dimanches année B…");
-        let offset = 0;
-        let done = false;
-        let guard = 0;
-        while (!done && guard < 20) {
-          guard += 1;
-          const res = await fetch("/api/lectures/sync", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ mode: "year-b", letter: "B", offset, limit: 6 }),
-          });
-          const data = await res.json().catch(() => ({}));
-          if (!res.ok) break;
-          done = Boolean(data.done);
-          offset = Number(data.nextOffset || offset + 6);
-          setSyncProgress(data.message || `Année B : ${offset} dimanches…`);
-          changed = true;
-        }
-      }
-
+      // Semaine d’abord (rapide) pour que la rubrique soit utilisable tout de suite
       if (upcomingWeekdayCount < 6) {
         setSyncProgress("Mise à jour des messes de la semaine…");
         await fetch("/api/lectures/sync", {
@@ -107,6 +87,34 @@ export default function LectureDuJourPage() {
           body: JSON.stringify({ mode: "weekdays-upcoming", count: 14 }),
         });
         changed = true;
+        await reloadReadings();
+      }
+
+      if (yearBSundays < 40) {
+        setSyncProgress("Complément des dimanches année B en arrière-plan…");
+        let offset = 0;
+        let done = false;
+        let guard = 0;
+        while (!done && guard < 20) {
+          guard += 1;
+          const res = await fetch("/api/lectures/sync", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ mode: "year-b", letter: "B", offset, limit: 8 }),
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) break;
+          done = Boolean(data.done);
+          offset = Number(data.nextOffset || offset + 8);
+          if (Number(data.fetched || 0) > 0) {
+            changed = true;
+            setSyncProgress(data.message || `Année B : ${offset}/${data.total || "?"}…`);
+            // Rafraîchir la liste au fur et à mesure sans bloquer
+            await reloadReadings();
+          }
+          // Si tout était déjà en base, un seul tour suffit
+          if (done || Number(data.fetched || 0) === 0) break;
+        }
       }
 
       if (changed) await reloadReadings();
@@ -126,9 +134,15 @@ export default function LectureDuJourPage() {
       .catch(() => null);
 
     reloadReadings()
-      .then((list) => ensureCatalog(list))
-      .catch(() => setError("Impossible de charger les lectures pour le moment."))
-      .finally(() => setLoading(false));
+      .then((list) => {
+        setLoading(false);
+        // Import AELF en fond : la page s’affiche immédiatement
+        void ensureCatalog(list);
+      })
+      .catch(() => {
+        setError("Impossible de charger les lectures pour le moment.");
+        setLoading(false);
+      });
   }, [status, router]);
 
   // Recherche par date : charge la lecture AELF si elle n’est pas encore en base
