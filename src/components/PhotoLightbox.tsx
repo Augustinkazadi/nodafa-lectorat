@@ -184,21 +184,43 @@ export default function PhotoLightbox({ src, images, index = 0, alt = "Photo", o
           {gallery.length > 1 ? `${current + 1} / ${gallery.length} · ` : ""}
           Pincez pour zoomer
         </span>
-        <button
-          type="button"
-          onClick={onClose}
-          style={{
-            border: "none",
-            background: "rgba(255,255,255,0.15)",
-            color: "#fff",
-            fontWeight: 800,
-            borderRadius: 999,
-            padding: "10px 16px",
-            cursor: "pointer",
-          }}
-        >
-          Fermer
-        </button>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <a
+            href={activeSrc}
+            download
+            target="_blank"
+            rel="noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              border: "none",
+              background: "rgba(255,255,255,0.15)",
+              color: "#fff",
+              fontWeight: 800,
+              borderRadius: 999,
+              padding: "10px 16px",
+              cursor: "pointer",
+              textDecoration: "none",
+              fontSize: 14,
+            }}
+          >
+            Télécharger
+          </a>
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              border: "none",
+              background: "rgba(255,255,255,0.15)",
+              color: "#fff",
+              fontWeight: 800,
+              borderRadius: 999,
+              padding: "10px 16px",
+              cursor: "pointer",
+            }}
+          >
+            Fermer
+          </button>
+        </div>
       </div>
 
       <div

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import AppNavbar from "@/components/AppNavbar";
+import PhotoLightbox from "@/components/PhotoLightbox";
 import { uploadMediaFile } from "@/lib/clientUpload";
 
 type Profile = {
@@ -34,6 +35,7 @@ export default function ProfilPage() {
   const [editing, setEditing] = useState(false);
   const [statusMsg, setStatusMsg] = useState("");
   const [unreadCount, setUnreadCount] = useState({ notifications: 0, messages: 0 });
+  const [lightbox, setLightbox] = useState<{ images: string[]; index: number; alt: string } | null>(null);
   const [form, setForm] = useState({
     prenom: "",
     nom: "",
@@ -44,6 +46,11 @@ export default function ProfilPage() {
 
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
+
+  const openPhoto = (url: string | null | undefined, alt: string) => {
+    if (!url) return;
+    setLightbox({ images: [url], index: 0, alt });
+  };
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login");
@@ -204,13 +211,29 @@ export default function ProfilPage() {
           }}
         >
           <div style={{ position: "relative", height: 220, background: "linear-gradient(135deg,#1e3a5f,#3b82f6)" }}>
-            {profile.coverPhoto && (
-              <img
-                src={profile.coverPhoto}
-                alt=""
-                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-              />
-            )}
+            {profile.coverPhoto ? (
+              <button
+                type="button"
+                onClick={() => openPhoto(profile.coverPhoto, `Couverture de ${fullName}`)}
+                title="Agrandir la couverture"
+                aria-label="Agrandir la photo de couverture"
+                style={{
+                  display: "block",
+                  width: "100%",
+                  height: "100%",
+                  padding: 0,
+                  border: "none",
+                  cursor: "zoom-in",
+                  background: "transparent",
+                }}
+              >
+                <img
+                  src={profile.coverPhoto}
+                  alt={`Couverture de ${fullName}`}
+                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                />
+              </button>
+            ) : null}
             {profile.isOwnProfile && (
               <button
                 type="button"
@@ -226,6 +249,7 @@ export default function ProfilPage() {
                   fontWeight: 700,
                   cursor: "pointer",
                   fontSize: 13,
+                  zIndex: 2,
                 }}
               >
                 Modifier la couverture
@@ -244,35 +268,51 @@ export default function ProfilPage() {
             }}
           >
             <div style={{ position: "relative" }}>
-              <div
-                style={{
-                  width: 148,
-                  height: 148,
-                  borderRadius: "50%",
-                  border: "4px solid var(--bg-elevated)",
-                  overflow: "hidden",
-                  background: "var(--link)",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-                }}
-              >
-                {profile.photo ? (
-                  <img src={profile.photo} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                ) : (
-                  <div
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      display: "grid",
-                      placeItems: "center",
-                      color: "#fff",
-                      fontSize: 56,
-                      fontWeight: 800,
-                    }}
-                  >
-                    {initial}
-                  </div>
-                )}
-              </div>
+              {profile.photo ? (
+                <button
+                  type="button"
+                  onClick={() => openPhoto(profile.photo, `Photo de ${fullName}`)}
+                  title="Agrandir la photo de profil"
+                  aria-label="Agrandir la photo de profil"
+                  style={{
+                    width: 148,
+                    height: 148,
+                    borderRadius: "50%",
+                    border: "4px solid var(--bg-elevated)",
+                    overflow: "hidden",
+                    background: "var(--link)",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                    padding: 0,
+                    cursor: "zoom-in",
+                    display: "block",
+                  }}
+                >
+                  <img
+                    src={profile.photo}
+                    alt={`Photo de ${fullName}`}
+                    style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                  />
+                </button>
+              ) : (
+                <div
+                  style={{
+                    width: 148,
+                    height: 148,
+                    borderRadius: "50%",
+                    border: "4px solid var(--bg-elevated)",
+                    overflow: "hidden",
+                    background: "var(--link)",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                    display: "grid",
+                    placeItems: "center",
+                    color: "#fff",
+                    fontSize: 56,
+                    fontWeight: 800,
+                  }}
+                >
+                  {initial}
+                </div>
+              )}
               {profile.isOwnProfile && (
                 <button
                   type="button"
@@ -282,6 +322,7 @@ export default function ProfilPage() {
                     position: "absolute",
                     right: 6,
                     bottom: 6,
+                    zIndex: 2,
                     width: 36,
                     height: 36,
                     borderRadius: "50%",
@@ -469,6 +510,15 @@ export default function ProfilPage() {
           </section>
         </div>
       </main>
+
+      {lightbox && (
+        <PhotoLightbox
+          images={lightbox.images}
+          index={lightbox.index}
+          alt={lightbox.alt}
+          onClose={() => setLightbox(null)}
+        />
+      )}
 
       <style jsx global>{`
         @media (max-width: 800px) {
