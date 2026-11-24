@@ -79,17 +79,10 @@ export default function AppNavbar({
             <div className="app-navbar__desktop-only">
               <ThemeToggle variant="icon" />
               <Link
-                href="/lecture-du-jour"
-                className={`app-nav-icon ${active === "lecture" ? "is-active" : ""}`}
-                aria-label="Lecture du jour"
-                title="Lecture du jour"
-              >
-                <span aria-hidden>📖</span>
-              </Link>
-              <Link
                 href="/notifications"
                 className={`app-nav-icon ${active === "notifications" ? "is-active" : ""}`}
                 aria-label="Notifications"
+                title="Notifications"
               >
                 <span aria-hidden>🔔</span>
                 {unreadNotifications > 0 && <span className="app-nav-badge">{unreadNotifications}</span>}
@@ -98,6 +91,7 @@ export default function AppNavbar({
                 href="/messages"
                 className={`app-nav-icon ${active === "messages" ? "is-active" : ""}`}
                 aria-label="Messages"
+                title="Messages"
               >
                 <span aria-hidden>💬</span>
                 {unreadMessages > 0 && <span className="app-nav-badge app-nav-badge--blue">{unreadMessages}</span>}
@@ -105,12 +99,6 @@ export default function AppNavbar({
             </div>
 
             <nav className="app-navbar__desktop-links">
-              <Link href="/messages" className={`app-nav-link ${active === "messages" ? "is-active" : ""}`}>
-                Messages{unreadMessages > 0 ? ` (${unreadMessages})` : ""}
-              </Link>
-              <Link href="/notifications" className={`app-nav-link ${active === "notifications" ? "is-active" : ""}`}>
-                Notifications{unreadNotifications > 0 ? ` (${unreadNotifications})` : ""}
-              </Link>
               <Link href="/live" className={`app-nav-link ${active === "live" ? "is-active" : ""}`}>
                 Événements
               </Link>
