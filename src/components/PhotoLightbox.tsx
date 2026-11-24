@@ -162,7 +162,7 @@ export default function PhotoLightbox({ src, images, index = 0, alt = "Photo", o
       style={{
         position: "fixed",
         inset: 0,
-        zIndex: 120,
+        zIndex: 250,
         background: "rgba(0,0,0,0.94)",
         display: "flex",
         flexDirection: "column",
