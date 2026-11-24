@@ -11,6 +11,7 @@ export default function AdminLecturesPage() {
   const [syncing, setSyncing] = useState(false);
   const [syncingSundays, setSyncingSundays] = useState(false);
   const [syncingWeek, setSyncingWeek] = useState(false);
+  const [syncingYearB, setSyncingYearB] = useState(false);
   const photoRefs = useRef<Record<number, HTMLInputElement | null>>({});
   const [form, setForm] = useState({
     title: "",
@@ -91,6 +92,37 @@ export default function AdminLecturesPage() {
     }
   };
 
+  const syncYearB = async () => {
+    setSyncingYearB(true);
+    setStatus("Import des dimanches année liturgique B…");
+    try {
+      let offset = 0;
+      let done = false;
+      let guard = 0;
+      let lastMessage = "";
+      while (!done && guard < 20) {
+        guard += 1;
+        const res = await fetch("/api/lectures/sync", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mode: "year-b", letter: "B", offset, limit: 8 }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.message || "Erreur sync");
+        lastMessage = data.message || "";
+        setStatus(`⏳ ${lastMessage}`);
+        done = Boolean(data.done);
+        offset = Number(data.nextOffset || offset + 8);
+      }
+      setStatus(`✅ ${lastMessage || "Année B importée"}`);
+      load();
+    } catch (e: any) {
+      setStatus("❌ " + (e.message || "Sync impossible"));
+    } finally {
+      setSyncingYearB(false);
+    }
+  };
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus("Ajout...");
@@ -164,7 +196,7 @@ export default function AdminLecturesPage() {
             type="button"
             className="nodafa-btn nodafa-btn-primary"
             onClick={syncAelf}
-            disabled={syncing || syncingSundays || syncingWeek}
+            disabled={syncing || syncingSundays || syncingWeek || syncingYearB}
           >
             {syncing ? "Synchronisation..." : "📥 Lecture du jour → Journal"}
           </button>
@@ -172,18 +204,27 @@ export default function AdminLecturesPage() {
             type="button"
             className="nodafa-btn nodafa-btn-primary"
             style={{ background: "#0f766e" }}
-            onClick={syncSundays}
-            disabled={syncing || syncingSundays || syncingWeek}
+            onClick={syncYearB}
+            disabled={syncing || syncingSundays || syncingWeek || syncingYearB}
           >
-            {syncingSundays ? "Publication..." : "📅 Dimanches à venir (préparation)"}
+            {syncingYearB ? "Import année B..." : "📅 Tous les dimanches année B"}
+          </button>
+          <button
+            type="button"
+            className="nodafa-btn nodafa-btn-primary"
+            style={{ background: "#0f766e" }}
+            onClick={syncSundays}
+            disabled={syncing || syncingSundays || syncingWeek || syncingYearB}
+          >
+            {syncingSundays ? "Publication..." : "📅 Dimanches à venir (rapide)"}
           </button>
           <button
             type="button"
             className="nodafa-btn nodafa-btn-ghost"
             onClick={syncWeek}
-            disabled={syncing || syncingSundays || syncingWeek}
+            disabled={syncing || syncingSundays || syncingWeek || syncingYearB}
           >
-            {syncingWeek ? "Préparation..." : "Préparer les textes de la semaine (sans tout afficher)"}
+            {syncingWeek ? "Préparation..." : "Préparer les textes de la semaine"}
           </button>
         </div>
       </div>

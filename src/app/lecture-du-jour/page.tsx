@@ -44,6 +44,77 @@ export default function LectureDuJourPage() {
   const [error, setError] = useState("");
   const [unreadCount, setUnreadCount] = useState({ notifications: 0, messages: 0 });
   const [filter, setFilter] = useState<"sundays" | "weekdays" | "all">("sundays");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchDate, setSearchDate] = useState("");
+  const [syncProgress, setSyncProgress] = useState("");
+
+  const reloadReadings = async () => {
+    const res = await fetch("/api/lectures");
+    if (!res.ok) throw new Error("Lecture indisponible");
+    const list = (await res.json()) as Reading[];
+    const safe = Array.isArray(list) ? list : [];
+    setReadings(safe);
+    return safe;
+  };
+
+  /** Importe les dimanches année B + jours de semaine à venir (par lots). */
+  const ensureCatalog = async (list: Reading[]) => {
+    try {
+      const yearBSundays = list.filter(
+        (r) =>
+          (Boolean(r.isSunday) || /dimanche/i.test(r.title || "")) &&
+          String(r.liturgicalYear || "").toUpperCase() === "B"
+      ).length;
+      const todayKey = todayIso();
+      const upcomingWeekdayCount = list.filter((r) => {
+        const day = isoDay(r.date);
+        if (day < todayKey) return false;
+        const weekday = new Intl.DateTimeFormat("en-US", {
+          timeZone: "Africa/Kinshasa",
+          weekday: "short",
+        }).format(new Date(r.date));
+        return weekday !== "Sun" && !r.isSunday;
+      }).length;
+
+      let changed = false;
+
+      if (yearBSundays < 40) {
+        setSyncProgress("Import des dimanches année B…");
+        let offset = 0;
+        let done = false;
+        let guard = 0;
+        while (!done && guard < 20) {
+          guard += 1;
+          const res = await fetch("/api/lectures/sync", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ mode: "year-b", letter: "B", offset, limit: 6 }),
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) break;
+          done = Boolean(data.done);
+          offset = Number(data.nextOffset || offset + 6);
+          setSyncProgress(data.message || `Année B : ${offset} dimanches…`);
+          changed = true;
+        }
+      }
+
+      if (upcomingWeekdayCount < 6) {
+        setSyncProgress("Mise à jour des messes de la semaine…");
+        await fetch("/api/lectures/sync", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mode: "weekdays-upcoming", count: 14 }),
+        });
+        changed = true;
+      }
+
+      if (changed) await reloadReadings();
+      setSyncProgress("");
+    } catch {
+      setSyncProgress("");
+    }
+  };
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login");
@@ -54,17 +125,35 @@ export default function LectureDuJourPage() {
       .then((d) => d && setUnreadCount(d))
       .catch(() => null);
 
-    fetch("/api/lectures")
-      .then(async (r) => {
-        if (!r.ok) throw new Error("Lecture indisponible");
-        return r.json();
-      })
-      .then((list: Reading[]) => {
-        setReadings(Array.isArray(list) ? list : []);
-      })
+    reloadReadings()
+      .then((list) => ensureCatalog(list))
       .catch(() => setError("Impossible de charger les lectures pour le moment."))
       .finally(() => setLoading(false));
   }, [status, router]);
+
+  // Recherche par date : charge la lecture AELF si elle n’est pas encore en base
+  useEffect(() => {
+    if (status !== "authenticated" || !searchDate) return;
+    const exists = readings.some((r) => isoDay(r.date) === searchDate);
+    if (exists) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        setSyncProgress(`Chargement de la lecture du ${searchDate}…`);
+        await fetch("/api/lectures/sync", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mode: "date", date: searchDate }),
+        });
+        if (!cancelled) await reloadReadings();
+      } finally {
+        if (!cancelled) setSyncProgress("");
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [searchDate, status]);
 
   const selected = readings.find((r) => r.id === selectedId) || null;
 
@@ -89,36 +178,80 @@ export default function LectureDuJourPage() {
     return weekday === "Sun";
   };
 
-  const upcomingSundays = useMemo(
+  const isYearB = (r: Reading) => String(r.liturgicalYear || "").toUpperCase() === "B";
+
+  const upcomingYearBSundays = useMemo(
     () =>
       readings
-        .filter((r) => isDominical(r) && isoDay(r.date) >= today)
+        .filter((r) => isDominical(r) && isYearB(r) && isoDay(r.date) >= today)
         .sort((a, b) => isoDay(a.date).localeCompare(isoDay(b.date))),
     [readings, today]
   );
 
-  const weekdays = useMemo(
+  const upcomingWeekdays = useMemo(
     () =>
       readings
-        .filter((r) => !isDominical(r))
+        .filter((r) => !isDominical(r) && isoDay(r.date) >= today)
         .sort((a, b) => isoDay(a.date).localeCompare(isoDay(b.date))),
-    [readings]
+    [readings, today]
   );
 
   const counts = useMemo(
     () => ({
-      sundays: upcomingSundays.length,
-      weekdays: weekdays.length,
+      sundays: upcomingYearBSundays.length,
+      weekdays: upcomingWeekdays.length,
       all: readings.length,
     }),
-    [upcomingSundays, weekdays, readings.length]
+    [upcomingYearBSundays, upcomingWeekdays, readings.length]
   );
 
+  const searchActive = Boolean(searchQuery.trim() || searchDate);
+
   const visible = useMemo(() => {
-    if (filter === "sundays") return upcomingSundays;
-    if (filter === "weekdays") return weekdays;
-    return [...readings].sort((a, b) => isoDay(a.date).localeCompare(isoDay(b.date)));
-  }, [filter, upcomingSundays, weekdays, readings]);
+    const q = searchQuery.trim().toLowerCase();
+    let list: Reading[];
+
+    if (searchActive) {
+      list = [...readings];
+      if (searchDate) {
+        list = list.filter((r) => isoDay(r.date) === searchDate);
+      }
+      if (q) {
+        list = list.filter((r) => {
+          const hay = [
+            r.title,
+            r.firstReading,
+            r.secondReading,
+            r.psalm,
+            r.gospel,
+            r.liturgicalSeason,
+            r.liturgicalYear,
+            r.commentary,
+          ]
+            .filter(Boolean)
+            .join("\n")
+            .toLowerCase();
+          return hay.includes(q);
+        });
+      }
+    } else if (filter === "sundays") {
+      list = upcomingYearBSundays;
+    } else if (filter === "weekdays") {
+      list = upcomingWeekdays;
+    } else {
+      list = [...readings];
+    }
+
+    return list.sort((a, b) => isoDay(a.date).localeCompare(isoDay(b.date)));
+  }, [
+    searchActive,
+    searchQuery,
+    searchDate,
+    filter,
+    upcomingYearBSundays,
+    upcomingWeekdays,
+    readings,
+  ]);
 
   if (status === "loading" || loading) {
     return <div style={{ padding: 50, textAlign: "center" }}>Chargement des lectures...</div>;
@@ -138,9 +271,76 @@ export default function LectureDuJourPage() {
       <main style={{ maxWidth: 860, margin: "0 auto", padding: "20px 16px 36px" }}>
         <h1 style={{ margin: "0 0 8px", fontFamily: "var(--font-display)", fontSize: 30 }}>Lectures</h1>
         <p style={{ margin: "0 0 12px", color: "var(--muted)", lineHeight: 1.45 }}>
-          Messes dominicales (seulement les dimanches à venir), messes de la semaine, ou toutes les lectures.
-          Dès qu’un dimanche est passé, il quitte la rubrique et le suivant prend sa place.
+          Messes dominicales de l’année liturgique B (à venir), messes de la semaine à jour, ou toutes les lectures.
+          Un jour passé disparaît de sa rubrique ; utilisez la recherche pour retrouver un jour déjà passé ou à venir.
         </p>
+
+        {syncProgress && (
+          <div className="nodafa-card" style={{ padding: "10px 14px", marginBottom: 12, color: "var(--muted)", fontSize: 14 }}>
+            {syncProgress}
+          </div>
+        )}
+
+        <div
+          className="nodafa-card"
+          style={{
+            padding: 14,
+            marginBottom: 14,
+            display: "grid",
+            gap: 10,
+            gridTemplateColumns: "1fr",
+          }}
+        >
+          <div style={{ fontWeight: 800, fontSize: 14 }}>🔎 Rechercher une lecture</div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Titre, lecture, évangile, temps liturgique…"
+              style={{
+                flex: "1 1 220px",
+                padding: "10px 12px",
+                borderRadius: 12,
+                border: "1px solid var(--line)",
+                background: "var(--bg-soft)",
+                color: "var(--ink)",
+              }}
+            />
+            <input
+              type="date"
+              value={searchDate}
+              onChange={(e) => setSearchDate(e.target.value)}
+              title="Date passée ou à venir"
+              style={{
+                flex: "0 1 180px",
+                padding: "10px 12px",
+                borderRadius: 12,
+                border: "1px solid var(--line)",
+                background: "var(--bg-soft)",
+                color: "var(--ink)",
+              }}
+            />
+            {(searchQuery || searchDate) && (
+              <button
+                type="button"
+                className="nodafa-btn nodafa-btn-ghost"
+                style={{ padding: "8px 12px" }}
+                onClick={() => {
+                  setSearchQuery("");
+                  setSearchDate("");
+                }}
+              >
+                Effacer
+              </button>
+            )}
+          </div>
+          {searchActive && (
+            <div style={{ fontSize: 13, color: "var(--muted)" }}>
+              Recherche active — {visible.length} résultat{visible.length > 1 ? "s" : ""} (jours passés et à venir).
+            </div>
+          )}
+        </div>
 
         {(() => {
           const todayReading =
@@ -187,7 +387,7 @@ export default function LectureDuJourPage() {
         >
           {(
             [
-              ["sundays", "Messes dominicales", counts.sundays],
+              ["sundays", "Messes dominicales (année B)", counts.sundays],
               ["weekdays", "Messes de la semaine", counts.weekdays],
               ["all", "Toutes", counts.all],
             ] as const
@@ -196,14 +396,19 @@ export default function LectureDuJourPage() {
               key={key}
               type="button"
               role="tab"
-              aria-selected={filter === key}
-              onClick={() => setFilter(key)}
+              aria-selected={!searchActive && filter === key}
+              onClick={() => {
+                setFilter(key);
+                setSearchQuery("");
+                setSearchDate("");
+              }}
               className="nodafa-btn nodafa-btn-ghost"
               style={{
                 padding: "8px 12px",
-                background: filter === key ? "var(--link)" : undefined,
-                color: filter === key ? "#fff" : undefined,
-                borderColor: filter === key ? "var(--link)" : undefined,
+                background: !searchActive && filter === key ? "var(--link)" : undefined,
+                color: !searchActive && filter === key ? "#fff" : undefined,
+                borderColor: !searchActive && filter === key ? "var(--link)" : undefined,
+                opacity: searchActive ? 0.7 : 1,
               }}
             >
               {label}
@@ -215,11 +420,13 @@ export default function LectureDuJourPage() {
         <div style={{ display: "grid", gap: 10 }}>
           {visible.length === 0 && (
             <div className="nodafa-card" style={{ padding: 20, color: "var(--muted)" }}>
-              {filter === "sundays"
-                ? "Aucun dimanche à venir. Un admin peut synchroniser les prochains dimanches depuis l’espace Lectures."
-                : filter === "weekdays"
-                  ? "Aucune messe de la semaine publiée pour le moment."
-                  : "Aucune lecture publiée. Un admin peut en ajouter depuis l’espace Lectures."}
+              {searchActive
+                ? "Aucune lecture ne correspond à cette recherche. Essayez une autre date ou un autre mot-clé."
+                : filter === "sundays"
+                  ? "Aucun dimanche d’année B à venir pour le moment. L’import AELF se lance automatiquement."
+                  : filter === "weekdays"
+                    ? "Aucune messe de la semaine à venir. La liste se met à jour automatiquement."
+                    : "Aucune lecture publiée."}
             </div>
           )}
           {visible.map((r) => {

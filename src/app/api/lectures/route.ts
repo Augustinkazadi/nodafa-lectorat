@@ -9,7 +9,7 @@ export async function GET() {
   try {
     const readings = await prisma.dailyReading.findMany({
       orderBy: { date: "asc" },
-      take: 120,
+      take: 400,
     });
     return NextResponse.json(readings);
   } catch (error) {

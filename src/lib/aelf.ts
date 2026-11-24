@@ -5,6 +5,8 @@ import {
   isLiturgicalSunday,
   liturgicalSeasonLabel,
   nextSundayDates,
+  sundaysOfLiturgicalYear,
+  upcomingWeekdayDates,
 } from "@/lib/liturgicalTitle";
 import { dateAtMidnight, dateAtNoon, dateKey, dayRange } from "@/lib/datetime";
 
@@ -126,6 +128,43 @@ export async function syncUpcomingSundays(count = 6) {
 /** Publie lun–dim de la semaine en cours → visibles dans le journal chaque jour. */
 export async function syncCurrentWeek() {
   const dates = currentWeekDates();
+  const readings = [];
+  for (const iso of dates) {
+    readings.push(await syncDailyReadingFromAelf(iso));
+  }
+  return readings;
+}
+
+/** Importe les dimanches d’une année liturgique (par lots pour éviter les timeouts). */
+export async function syncLiturgicalYearSundays(
+  letter: "A" | "B" | "C" = "B",
+  opts?: { offset?: number; limit?: number }
+) {
+  const { dates, adventYear, startIso, endIso } = sundaysOfLiturgicalYear(letter);
+  const offset = Math.max(0, opts?.offset ?? 0);
+  const limit = Math.min(12, Math.max(1, opts?.limit ?? 8));
+  const slice = dates.slice(offset, offset + limit);
+  const readings = [];
+  for (const iso of slice) {
+    readings.push(await syncDailyReadingFromAelf(iso));
+  }
+  const nextOffset = offset + slice.length;
+  return {
+    letter,
+    adventYear,
+    startIso,
+    endIso,
+    total: dates.length,
+    offset,
+    nextOffset,
+    done: nextOffset >= dates.length,
+    readings,
+  };
+}
+
+/** Prépare les messes de la semaine à venir (lun–sam). */
+export async function syncUpcomingWeekdays(count = 12) {
+  const dates = upcomingWeekdayDates(count);
   const readings = [];
   for (const iso of dates) {
     readings.push(await syncDailyReadingFromAelf(iso));

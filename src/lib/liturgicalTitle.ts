@@ -157,3 +157,61 @@ export function currentWeekDates(from = new Date()) {
   }
   return dates;
 }
+
+/** 1er dimanche de l’Avent = dimanche entre le 27 nov. et le 3 déc. */
+export function adventStartIso(civilYear: number) {
+  for (let day = 27; day <= 33; day++) {
+    const monthIndex = day <= 30 ? 10 : 11; // nov / déc
+    const dayNum = day <= 30 ? day : day - 30;
+    const d = new Date(Date.UTC(civilYear, monthIndex, dayNum, 12));
+    if (d.getUTCDay() === 0) return toIsoUtc(d);
+  }
+  throw new Error(`Avent introuvable pour ${civilYear}`);
+}
+
+/** Advent 2023 = B, 2024 = C, 2025 = A, 2026 = B… */
+export function liturgicalLetterAtAdvent(civilYear: number): "A" | "B" | "C" {
+  const cycle: Array<"A" | "B" | "C"> = ["B", "C", "A"];
+  return cycle[((civilYear - 2023) % 3 + 3) % 3];
+}
+
+/** Tous les dimanches d’une année liturgique (A/B/C), du 1er Avent au samedi avant le suivant. */
+export function sundaysOfLiturgicalYear(letter: "A" | "B" | "C" = "B", around = new Date()) {
+  const aroundIso = dateKey(around);
+  let startYear: number | null = null;
+  let upcomingYear: number | null = null;
+
+  for (let cy = around.getFullYear() - 1; cy <= around.getFullYear() + 2; cy++) {
+    if (liturgicalLetterAtAdvent(cy) !== letter) continue;
+    const start = adventStartIso(cy);
+    const end = adventStartIso(cy + 1);
+    if (aroundIso >= start && aroundIso < end) {
+      startYear = cy;
+      break;
+    }
+    if (aroundIso < start && upcomingYear === null) upcomingYear = cy;
+  }
+
+  const year = startYear ?? upcomingYear ?? around.getFullYear();
+  const startIso = adventStartIso(year);
+  const endIso = adventStartIso(year + 1);
+  const dates: string[] = [];
+  const d = new Date(`${startIso}T12:00:00.000Z`);
+  const end = new Date(`${endIso}T12:00:00.000Z`);
+  while (d < end) {
+    dates.push(toIsoUtc(d));
+    d.setUTCDate(d.getUTCDate() + 7);
+  }
+  return { letter, adventYear: year, startIso, endIso, dates };
+}
+
+/** Jours de semaine (lun–sam) à venir, pour garder la liste à jour. */
+export function upcomingWeekdayDates(count = 14, from = new Date()) {
+  const dates: string[] = [];
+  const d = kinshasaAnchor(from);
+  while (dates.length < count) {
+    if (d.getUTCDay() !== 0) dates.push(toIsoUtc(d));
+    d.setUTCDate(d.getUTCDate() + 1);
+  }
+  return dates;
+}
