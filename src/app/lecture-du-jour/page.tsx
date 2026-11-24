@@ -89,21 +89,36 @@ export default function LectureDuJourPage() {
     return weekday === "Sun";
   };
 
-  const counts = useMemo(() => {
-    const sundays = readings.filter(isDominical).length;
-    const weekdays = readings.filter((r) => !isDominical(r)).length;
-    return { sundays, weekdays, all: readings.length };
-  }, [readings]);
+  const upcomingSundays = useMemo(
+    () =>
+      readings
+        .filter((r) => isDominical(r) && isoDay(r.date) >= today)
+        .sort((a, b) => isoDay(a.date).localeCompare(isoDay(b.date))),
+    [readings, today]
+  );
+
+  const weekdays = useMemo(
+    () =>
+      readings
+        .filter((r) => !isDominical(r))
+        .sort((a, b) => isoDay(a.date).localeCompare(isoDay(b.date))),
+    [readings]
+  );
+
+  const counts = useMemo(
+    () => ({
+      sundays: upcomingSundays.length,
+      weekdays: weekdays.length,
+      all: readings.length,
+    }),
+    [upcomingSundays, weekdays, readings.length]
+  );
 
   const visible = useMemo(() => {
-    let list = [...readings];
-    if (filter === "sundays") {
-      list = list.filter(isDominical);
-    } else if (filter === "weekdays") {
-      list = list.filter((r) => !isDominical(r));
-    }
-    return list.sort((a, b) => isoDay(a.date).localeCompare(isoDay(b.date)));
-  }, [readings, filter]);
+    if (filter === "sundays") return upcomingSundays;
+    if (filter === "weekdays") return weekdays;
+    return [...readings].sort((a, b) => isoDay(a.date).localeCompare(isoDay(b.date)));
+  }, [filter, upcomingSundays, weekdays, readings]);
 
   if (status === "loading" || loading) {
     return <div style={{ padding: 50, textAlign: "center" }}>Chargement des lectures...</div>;
@@ -123,8 +138,8 @@ export default function LectureDuJourPage() {
       <main style={{ maxWidth: 860, margin: "0 auto", padding: "20px 16px 36px" }}>
         <h1 style={{ margin: "0 0 8px", fontFamily: "var(--font-display)", fontSize: 30 }}>Lectures</h1>
         <p style={{ margin: "0 0 12px", color: "var(--muted)", lineHeight: 1.45 }}>
-          Messes dominicales, messes de la semaine, ou toutes les lectures. Le Journal n’affiche que la lecture du
-          jour (à partir de 00h00) ; ici vous gardez l’archive complète.
+          Messes dominicales (seulement les dimanches à venir), messes de la semaine, ou toutes les lectures.
+          Dès qu’un dimanche est passé, il quitte la rubrique et le suivant prend sa place.
         </p>
 
         {(() => {
@@ -201,7 +216,7 @@ export default function LectureDuJourPage() {
           {visible.length === 0 && (
             <div className="nodafa-card" style={{ padding: 20, color: "var(--muted)" }}>
               {filter === "sundays"
-                ? "Aucune messe dominicale publiée pour le moment."
+                ? "Aucun dimanche à venir. Un admin peut synchroniser les prochains dimanches depuis l’espace Lectures."
                 : filter === "weekdays"
                   ? "Aucune messe de la semaine publiée pour le moment."
                   : "Aucune lecture publiée. Un admin peut en ajouter depuis l’espace Lectures."}
