@@ -328,12 +328,26 @@ export default function MessagesPage() {
     [conversations, activeConvId]
   );
 
+  const usersById = useMemo(() => {
+    const map = new Map<number, any>();
+    for (const u of users) map.set(u.id, u);
+    return map;
+  }, [users]);
+
+  const withPhoto = (user: any | null | undefined) => {
+    if (!user) return null;
+    if (user.photo) return user;
+    const fromList = usersById.get(user.id);
+    return fromList?.photo ? { ...user, photo: fromList.photo } : user;
+  };
+
   const activePeer = useMemo(() => {
-    if (receiverId) return users.find((u) => u.id === receiverId);
+    if (receiverId) return withPhoto(users.find((u) => u.id === receiverId));
     if (!activeConvId) return null;
     if (activeConv?.isBroadcast) return null;
-    return activeConv?.participants?.map((p: any) => p.user).find((u: any) => u.id !== userId) || null;
-  }, [receiverId, activeConvId, activeConv, users, userId]);
+    const peer = activeConv?.participants?.map((p: any) => p.user).find((u: any) => u.id !== userId) || null;
+    return withPhoto(peer);
+  }, [receiverId, activeConvId, activeConv, users, usersById, userId]);
 
   const filteredConversations = conversations.filter((conv) => {
     if (!search.trim()) return true;
@@ -413,71 +427,71 @@ export default function MessagesPage() {
             </div>
             <div style={{ display: "flex", gap: 12, overflowX: "auto", paddingBottom: 6 }}>
               {onlineUsers.map((u) => (
-                <button
-                  key={`online-${u.id}`}
-                  type="button"
-                  onClick={() => handleNewConversation(u.id)}
-                  style={{
-                    border: "none",
-                    background: "transparent",
-                    color: "var(--wa-ink)",
-                    cursor: "pointer",
-                    minWidth: 64,
-                    padding: 0,
-                  }}
-                  title={`${u.prenom} ${u.nom}`}
-                >
-                  <div style={{ position: "relative", width: 52, height: 52, margin: "0 auto 6px" }}>
-                    {u.photo ? (
-                      <img
-                        src={u.photo}
-                        alt=""
-                        style={{ width: 52, height: 52, borderRadius: "50%", objectFit: "cover", border: "2px solid var(--wa-accent)" }}
-                      />
-                    ) : (
-                      <div
+                <div key={`online-${u.id}`} style={{ minWidth: 64, textAlign: "center" }}>
+                  <Link
+                    href={`/profil?id=${u.id}`}
+                    title={`Profil de ${u.prenom}`}
+                    style={{ display: "block", textDecoration: "none", color: "inherit" }}
+                  >
+                    <div style={{ position: "relative", width: 52, height: 52, margin: "0 auto 6px" }}>
+                      {u.photo ? (
+                        <img
+                          src={u.photo}
+                          alt=""
+                          style={{ width: 52, height: 52, borderRadius: "50%", objectFit: "cover", border: "2px solid var(--wa-accent)" }}
+                        />
+                      ) : (
+                        <div
+                          style={{
+                            width: 52,
+                            height: 52,
+                            borderRadius: "50%",
+                            background: "var(--wa-accent)",
+                            color: "var(--wa-on-accent)",
+                            display: "grid",
+                            placeItems: "center",
+                            fontWeight: 800,
+                            border: "2px solid var(--wa-accent)",
+                          }}
+                        >
+                          {(u.prenom || "U").charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                      <span
                         style={{
-                          width: 52,
-                          height: 52,
+                          position: "absolute",
+                          right: 1,
+                          bottom: 1,
+                          width: 12,
+                          height: 12,
                           borderRadius: "50%",
-                          background: "var(--wa-accent)",
-                          color: "var(--wa-on-accent)",
-                          display: "grid",
-                          placeItems: "center",
-                          fontWeight: 800,
-                          border: "2px solid var(--wa-accent)",
+                          background: "var(--online)",
+                          border: "2px solid var(--wa-shell)",
                         }}
-                      >
-                        {(u.prenom || "U").charAt(0).toUpperCase()}
-                      </div>
-                    )}
-                    <span
-                      style={{
-                        position: "absolute",
-                        right: 1,
-                        bottom: 1,
-                        width: 12,
-                        height: 12,
-                        borderRadius: "50%",
-                        background: "var(--online)",
-                        border: "2px solid var(--wa-shell)",
-                      }}
-                    />
-                  </div>
-                  <div
+                      />
+                    </div>
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => handleNewConversation(u.id)}
                     style={{
+                      border: "none",
+                      background: "transparent",
+                      color: "var(--wa-ink)",
+                      cursor: "pointer",
+                      padding: 0,
                       fontSize: 11,
                       fontWeight: 700,
+                      maxWidth: 64,
                       whiteSpace: "nowrap",
                       overflow: "hidden",
                       textOverflow: "ellipsis",
-                      maxWidth: 64,
-                      textAlign: "center",
                     }}
+                    title={`Écrire à ${u.prenom}`}
                   >
                     {u.prenom}
-                  </div>
-                </button>
+                  </button>
+                </div>
               ))}
             </div>
           </div>
@@ -524,22 +538,33 @@ export default function MessagesPage() {
           )}
           {search.trim() &&
             filteredUsers.map((u) => (
-              <button
+              <div
                 key={`u-${u.id}`}
                 className="wa-list-item"
-                onClick={() => handleNewConversation(u.id)}
-                style={listItemStyle}
+                style={{ ...listItemStyle, cursor: "default" }}
               >
-                <Avatar src={u.photo} name={u.prenom} size={48} online={!!u.online} />
-                <div style={{ flex: 1, textAlign: "left", overflow: "hidden" }}>
+                <Link href={`/profil?id=${u.id}`} title="Voir le profil" style={{ textDecoration: "none", color: "inherit" }}>
+                  <Avatar src={u.photo} name={u.prenom} size={48} online={!!u.online} />
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => handleNewConversation(u.id)}
+                  style={{ flex: 1, textAlign: "left", overflow: "hidden", border: "none", background: "transparent", color: "inherit", cursor: "pointer", padding: 0 }}
+                >
                   <div style={{ fontWeight: 600 }}>
-                    {u.prenom} {u.nom}
+                    <Link
+                      href={`/profil?id=${u.id}`}
+                      onClick={(e) => e.stopPropagation()}
+                      style={{ color: "inherit", textDecoration: "none" }}
+                    >
+                      {u.prenom} {u.nom}
+                    </Link>
                   </div>
                   <div style={{ color: u.online ? "var(--wa-accent)" : "var(--wa-muted)", fontSize: 13 }}>
                     {u.online ? "En ligne" : u.presenceLabel || "Hors ligne"}
                   </div>
-                </div>
-              </button>
+                </button>
+              </div>
             ))}
 
           <div style={{ padding: "8px 16px", color: "var(--wa-muted)", fontSize: 12, fontWeight: 700 }}>DISCUSSIONS</div>
@@ -547,7 +572,7 @@ export default function MessagesPage() {
             <p style={{ color: "var(--wa-muted)", padding: 16, fontSize: 14 }}>Aucune conversation.</p>
           )}
           {filteredConversations.map((conv) => {
-            const peer = conv.participants.map((p: any) => p.user).find((u: any) => u.id !== userId);
+            const peer = withPhoto(conv.participants.map((p: any) => p.user).find((u: any) => u.id !== userId));
             const last = conv.messages?.[0];
             const preview = last
               ? resolveMessageMediaType(last)
@@ -556,17 +581,19 @@ export default function MessagesPage() {
               : "Aucun message";
             const title = conv.isBroadcast ? conv.title || "Annonce Lectorat" : peer ? `${peer.prenom} ${peer.nom}` : "Discussion";
             return (
-              <button
+              <div
                 key={conv.id}
                 className="wa-list-item"
-                onClick={() => fetchMessages(conv.id)}
                 style={{
                   ...listItemStyle,
                   background: activeConvId === conv.id ? "var(--wa-panel-2)" : "transparent",
+                  cursor: "default",
                 }}
               >
                 {conv.isBroadcast ? (
-                  <div
+                  <button
+                    type="button"
+                    onClick={() => fetchMessages(conv.id)}
                     style={{
                       width: 48,
                       height: 48,
@@ -577,17 +604,38 @@ export default function MessagesPage() {
                       placeItems: "center",
                       fontSize: 22,
                       flexShrink: 0,
+                      border: "none",
+                      cursor: "pointer",
                     }}
                   >
                     📢
-                  </div>
+                  </button>
+                ) : peer ? (
+                  <Link href={`/profil?id=${peer.id}`} title="Voir le profil" style={{ textDecoration: "none", color: "inherit" }}>
+                    <Avatar src={peer.photo} name={peer.prenom || "U"} size={48} online={isOnline(peer.lastSeenAt)} />
+                  </Link>
                 ) : (
-                  <Avatar src={peer?.photo} name={peer?.prenom || "U"} size={48} online={isOnline(peer?.lastSeenAt)} />
+                  <Avatar src={null} name="U" size={48} />
                 )}
-                <div style={{ flex: 1, textAlign: "left", overflow: "hidden" }}>
+                <button
+                  type="button"
+                  onClick={() => fetchMessages(conv.id)}
+                  style={{ flex: 1, textAlign: "left", overflow: "hidden", border: "none", background: "transparent", color: "inherit", cursor: "pointer", padding: 0, minWidth: 0 }}
+                >
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
                     <span style={{ fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                      {title}
+                      {!conv.isBroadcast && peer ? (
+                        <Link
+                          href={`/profil?id=${peer.id}`}
+                          onClick={(e) => e.stopPropagation()}
+                          style={{ color: "inherit", textDecoration: "none" }}
+                          title="Voir le profil"
+                        >
+                          {title}
+                        </Link>
+                      ) : (
+                        title
+                      )}
                     </span>
                     <span style={{ color: conv.unread ? "var(--wa-accent)" : "var(--wa-muted)", fontSize: 12, flexShrink: 0 }}>
                       {last ? shortTime(last.createdAt) : ""}
@@ -625,8 +673,8 @@ export default function MessagesPage() {
                       </span>
                     )}
                   </div>
-                </div>
-              </button>
+                </button>
+              </div>
             );
           })}
         </div>
@@ -684,16 +732,28 @@ export default function MessagesPage() {
                 >
                   📢
                 </div>
+              ) : activePeer ? (
+                <Link href={`/profil?id=${activePeer.id}`} title="Voir le profil" style={{ textDecoration: "none", color: "inherit" }}>
+                  <Avatar src={activePeer.photo} name={activePeer.prenom || "U"} size={40} online={isOnline(activePeer.lastSeenAt)} />
+                </Link>
               ) : (
-                <Avatar src={activePeer?.photo} name={activePeer?.prenom || "U"} size={40} online={isOnline(activePeer?.lastSeenAt)} />
+                <Avatar src={null} name="U" size={40} />
               )}
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontWeight: 700 }}>
-                  {activeConv?.isBroadcast
-                    ? activeConv.title || "Annonce Lectorat"
-                    : activePeer
-                      ? `${activePeer.prenom} ${activePeer.nom}`
-                      : "Discussion"}
+                  {activeConv?.isBroadcast ? (
+                    activeConv.title || "Annonce Lectorat"
+                  ) : activePeer ? (
+                    <Link
+                      href={`/profil?id=${activePeer.id}`}
+                      style={{ color: "inherit", textDecoration: "none" }}
+                      title="Voir le profil"
+                    >
+                      {activePeer.prenom} {activePeer.nom}
+                    </Link>
+                  ) : (
+                    "Discussion"
+                  )}
                 </div>
                 <div style={{ color: isOnline(activePeer?.lastSeenAt) ? "var(--wa-accent)" : "var(--wa-muted)", fontSize: 12 }}>
                   {activeConv?.isBroadcast
@@ -738,15 +798,28 @@ export default function MessagesPage() {
                   </div>
                   {group.items.map((msg) => {
                     const isMine = msg.senderId === userId;
+                    const sender = withPhoto(msg.sender);
+                    const showSenderAvatar = !isMine && !!sender;
                     return (
                       <div
                         key={msg.id}
                         style={{
                           display: "flex",
                           justifyContent: isMine ? "flex-end" : "flex-start",
+                          alignItems: "flex-end",
+                          gap: 6,
                           marginBottom: 6,
                         }}
                       >
+                        {showSenderAvatar && (
+                          <Link
+                            href={`/profil?id=${sender.id}`}
+                            title={`Profil de ${sender.prenom || ""}`}
+                            style={{ textDecoration: "none", color: "inherit", flexShrink: 0 }}
+                          >
+                            <Avatar src={sender.photo} name={sender.prenom || "U"} size={28} online={isOnline(sender.lastSeenAt)} />
+                          </Link>
+                        )}
                         <div
                           style={{
                             maxWidth: "min(75%, 520px)",
@@ -760,6 +833,21 @@ export default function MessagesPage() {
                           }}
                           className="wa-bubble"
                         >
+                          {showSenderAvatar && activeConv?.isBroadcast && (
+                            <Link
+                              href={`/profil?id=${sender.id}`}
+                              style={{
+                                display: "block",
+                                fontSize: 12,
+                                fontWeight: 800,
+                                color: "var(--wa-accent)",
+                                textDecoration: "none",
+                                marginBottom: 4,
+                              }}
+                            >
+                              {sender.prenom} {sender.nom}
+                            </Link>
+                          )}
                           {msg.replyTo && (
                             <div
                               style={{
