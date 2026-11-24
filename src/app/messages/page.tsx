@@ -600,7 +600,7 @@ export default function MessagesPage() {
               >
                 <button
                   type="button"
-                  onClick={() => (u.photo ? openProfilePhoto(u.photo, `${u.prenom} ${u.nom}`) : handleNewConversation(u.id))}
+                  onClick={(e) => (u.photo ? openProfilePhoto(u.photo, `${u.prenom} ${u.nom}`, e) : handleNewConversation(u.id))}
                   title={u.photo ? "Voir la photo" : "Ouvrir la discussion"}
                   style={{ border: "none", background: "transparent", padding: 0, cursor: u.photo ? "zoom-in" : "pointer" }}
                 >
