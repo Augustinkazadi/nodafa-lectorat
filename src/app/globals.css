@@ -584,6 +584,12 @@ textarea::placeholder {
     display: flex;
   }
 
+  /* Les icônes Messages / Notifications / Lecture / thème restent display:none
+     par défaut (mobile) : il faut les forcer visibles dans la barre PC. */
+  .app-navbar__desktop-only .app-nav-icon {
+    display: inline-flex;
+  }
+
   body {
     padding-bottom: 0;
   }

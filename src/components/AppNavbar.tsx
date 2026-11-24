@@ -105,6 +105,12 @@ export default function AppNavbar({
             </div>
 
             <nav className="app-navbar__desktop-links">
+              <Link href="/messages" className={`app-nav-link ${active === "messages" ? "is-active" : ""}`}>
+                Messages{unreadMessages > 0 ? ` (${unreadMessages})` : ""}
+              </Link>
+              <Link href="/notifications" className={`app-nav-link ${active === "notifications" ? "is-active" : ""}`}>
+                Notifications{unreadNotifications > 0 ? ` (${unreadNotifications})` : ""}
+              </Link>
               <Link href="/live" className={`app-nav-link ${active === "live" ? "is-active" : ""}`}>
                 Événements
               </Link>
