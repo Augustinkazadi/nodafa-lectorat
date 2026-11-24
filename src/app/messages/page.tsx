@@ -9,8 +9,10 @@ import { resolveMessageMediaType } from "@/lib/media";
 import { WaAudioPlayer, WaVideoPlayer } from "@/components/WaMediaPlayers";
 import ThemeToggle from "@/components/ThemeToggle";
 import PresenceToastStack from "@/components/PresenceToast";
+import PhotoLightbox from "@/components/PhotoLightbox";
 
 const EMOJIS = ["😀", "😂", "🙏", "❤️", "👍", "🎉", "🔥", "😊", "🙌", "✝️", "😇", "👏"];
+const PROFILE_FROM_MESSAGES = "/profil?from=messages&id=";
 
 export default function MessagesPage() {
   const { data: session, status } = useSession();
@@ -38,8 +40,16 @@ export default function MessagesPage() {
   const [openingBroadcast, setOpeningBroadcast] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState<any[]>([]);
   const [presenceToasts, setPresenceToasts] = useState<{ id: number; name: string; photo?: string | null }[]>([]);
+  const [photoView, setPhotoView] = useState<{ src: string; alt: string } | null>(null);
   const knownOnlineRef = useRef<Set<number>>(new Set());
   const presenceReadyRef = useRef(false);
+
+  const openProfilePhoto = (photo?: string | null, name?: string) => {
+    if (!photo) return;
+    setPhotoView({ src: photo, alt: name ? `Photo de ${name}` : "Photo de profil" });
+  };
+
+  const profileUrl = (id: number) => `${PROFILE_FROM_MESSAGES}${id}`;
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -376,6 +386,9 @@ export default function MessagesPage() {
         toasts={presenceToasts}
         onDismiss={(id) => setPresenceToasts((prev) => prev.filter((t) => t.id !== id))}
       />
+      {photoView && (
+        <PhotoLightbox src={photoView.src} alt={photoView.alt} onClose={() => setPhotoView(null)} />
+      )}
       <AppNavbar
         userName={session?.user?.name}
         userPhoto={(session?.user as any)?.image}
@@ -428,10 +441,11 @@ export default function MessagesPage() {
             <div style={{ display: "flex", gap: 12, overflowX: "auto", paddingBottom: 6 }}>
               {onlineUsers.map((u) => (
                 <div key={`online-${u.id}`} style={{ minWidth: 64, textAlign: "center" }}>
-                  <Link
-                    href={`/profil?id=${u.id}`}
-                    title={`Profil de ${u.prenom}`}
-                    style={{ display: "block", textDecoration: "none", color: "inherit" }}
+                  <button
+                    type="button"
+                    onClick={() => (u.photo ? openProfilePhoto(u.photo, `${u.prenom} ${u.nom}`) : handleNewConversation(u.id))}
+                    title={u.photo ? "Voir la photo" : `Écrire à ${u.prenom}`}
+                    style={{ display: "block", border: "none", background: "transparent", padding: 0, margin: "0 auto", cursor: u.photo ? "zoom-in" : "pointer" }}
                   >
                     <div style={{ position: "relative", width: 52, height: 52, margin: "0 auto 6px" }}>
                       {u.photo ? (
@@ -470,7 +484,7 @@ export default function MessagesPage() {
                         }}
                       />
                     </div>
-                  </Link>
+                  </button>
                   <button
                     type="button"
                     onClick={() => handleNewConversation(u.id)}
@@ -543,22 +557,21 @@ export default function MessagesPage() {
                 className="wa-list-item"
                 style={{ ...listItemStyle, cursor: "default" }}
               >
-                <Link href={`/profil?id=${u.id}`} title="Voir le profil" style={{ textDecoration: "none", color: "inherit" }}>
+                <button
+                  type="button"
+                  onClick={() => (u.photo ? openProfilePhoto(u.photo, `${u.prenom} ${u.nom}`) : handleNewConversation(u.id))}
+                  title={u.photo ? "Voir la photo" : "Ouvrir la discussion"}
+                  style={{ border: "none", background: "transparent", padding: 0, cursor: u.photo ? "zoom-in" : "pointer" }}
+                >
                   <Avatar src={u.photo} name={u.prenom} size={48} online={!!u.online} />
-                </Link>
+                </button>
                 <button
                   type="button"
                   onClick={() => handleNewConversation(u.id)}
                   style={{ flex: 1, textAlign: "left", overflow: "hidden", border: "none", background: "transparent", color: "inherit", cursor: "pointer", padding: 0 }}
                 >
                   <div style={{ fontWeight: 600 }}>
-                    <Link
-                      href={`/profil?id=${u.id}`}
-                      onClick={(e) => e.stopPropagation()}
-                      style={{ color: "inherit", textDecoration: "none" }}
-                    >
-                      {u.prenom} {u.nom}
-                    </Link>
+                    {u.prenom} {u.nom}
                   </div>
                   <div style={{ color: u.online ? "var(--wa-accent)" : "var(--wa-muted)", fontSize: 13 }}>
                     {u.online ? "En ligne" : u.presenceLabel || "Hors ligne"}
@@ -611,9 +624,14 @@ export default function MessagesPage() {
                     📢
                   </button>
                 ) : peer ? (
-                  <Link href={`/profil?id=${peer.id}`} title="Voir le profil" style={{ textDecoration: "none", color: "inherit" }}>
+                  <button
+                    type="button"
+                    onClick={() => (peer.photo ? openProfilePhoto(peer.photo, title) : fetchMessages(conv.id))}
+                    title={peer.photo ? "Voir la photo" : "Ouvrir la discussion"}
+                    style={{ border: "none", background: "transparent", padding: 0, cursor: peer.photo ? "zoom-in" : "pointer" }}
+                  >
                     <Avatar src={peer.photo} name={peer.prenom || "U"} size={48} online={isOnline(peer.lastSeenAt)} />
-                  </Link>
+                  </button>
                 ) : (
                   <Avatar src={null} name="U" size={48} />
                 )}
@@ -624,18 +642,7 @@ export default function MessagesPage() {
                 >
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
                     <span style={{ fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                      {!conv.isBroadcast && peer ? (
-                        <Link
-                          href={`/profil?id=${peer.id}`}
-                          onClick={(e) => e.stopPropagation()}
-                          style={{ color: "inherit", textDecoration: "none" }}
-                          title="Voir le profil"
-                        >
-                          {title}
-                        </Link>
-                      ) : (
-                        title
-                      )}
+                      {title}
                     </span>
                     <span style={{ color: conv.unread ? "var(--wa-accent)" : "var(--wa-muted)", fontSize: 12, flexShrink: 0 }}>
                       {last ? shortTime(last.createdAt) : ""}
@@ -733,38 +740,48 @@ export default function MessagesPage() {
                   📢
                 </div>
               ) : activePeer ? (
-                <Link href={`/profil?id=${activePeer.id}`} title="Voir le profil" style={{ textDecoration: "none", color: "inherit" }}>
+                <button
+                  type="button"
+                  onClick={() => openProfilePhoto(activePeer.photo, `${activePeer.prenom} ${activePeer.nom}`)}
+                  title={activePeer.photo ? "Voir la photo de profil" : undefined}
+                  style={{
+                    border: "none",
+                    background: "transparent",
+                    padding: 0,
+                    cursor: activePeer.photo ? "zoom-in" : "default",
+                  }}
+                >
                   <Avatar src={activePeer.photo} name={activePeer.prenom || "U"} size={40} online={isOnline(activePeer.lastSeenAt)} />
-                </Link>
+                </button>
               ) : (
                 <Avatar src={null} name="U" size={40} />
               )}
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 700 }}>
-                  {activeConv?.isBroadcast ? (
-                    activeConv.title || "Annonce Lectorat"
-                  ) : activePeer ? (
-                    <Link
-                      href={`/profil?id=${activePeer.id}`}
-                      style={{ color: "inherit", textDecoration: "none" }}
-                      title="Voir le profil"
-                    >
-                      {activePeer.prenom} {activePeer.nom}
-                    </Link>
-                  ) : (
-                    "Discussion"
-                  )}
+              {activeConv?.isBroadcast ? (
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 700 }}>{activeConv.title || "Annonce Lectorat"}</div>
+                  <div style={{ color: "var(--wa-muted)", fontSize: 12 }}>Message visible par tous les lecteurs</div>
                 </div>
-                <div style={{ color: isOnline(activePeer?.lastSeenAt) ? "var(--wa-accent)" : "var(--wa-muted)", fontSize: 12 }}>
-                  {activeConv?.isBroadcast
-                    ? "Message visible par tous les lecteurs"
-                    : activePeer
-                      ? presenceText(activePeer.lastSeenAt)
-                      : activeConvId
-                        ? "Discussion privée"
-                        : "Nouvelle discussion"}
+              ) : activePeer ? (
+                <Link
+                  href={profileUrl(activePeer.id)}
+                  style={{ flex: 1, minWidth: 0, textDecoration: "none", color: "inherit" }}
+                  title="Voir le profil et ses publications"
+                >
+                  <div style={{ fontWeight: 700 }}>
+                    {activePeer.prenom} {activePeer.nom}
+                  </div>
+                  <div style={{ color: isOnline(activePeer.lastSeenAt) ? "var(--wa-accent)" : "var(--wa-muted)", fontSize: 12 }}>
+                    {presenceText(activePeer.lastSeenAt)} · Voir le profil
+                  </div>
+                </Link>
+              ) : (
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 700 }}>Discussion</div>
+                  <div style={{ color: "var(--wa-muted)", fontSize: 12 }}>
+                    {activeConvId ? "Discussion privée" : "Nouvelle discussion"}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             <div
@@ -812,13 +829,20 @@ export default function MessagesPage() {
                         }}
                       >
                         {showSenderAvatar && (
-                          <Link
-                            href={`/profil?id=${sender.id}`}
-                            title={`Profil de ${sender.prenom || ""}`}
-                            style={{ textDecoration: "none", color: "inherit", flexShrink: 0 }}
+                          <button
+                            type="button"
+                            onClick={() => openProfilePhoto(sender.photo, `${sender.prenom || ""} ${sender.nom || ""}`)}
+                            title={sender.photo ? "Voir la photo" : undefined}
+                            style={{
+                              border: "none",
+                              background: "transparent",
+                              padding: 0,
+                              flexShrink: 0,
+                              cursor: sender.photo ? "zoom-in" : "default",
+                            }}
                           >
                             <Avatar src={sender.photo} name={sender.prenom || "U"} size={28} online={isOnline(sender.lastSeenAt)} />
-                          </Link>
+                          </button>
                         )}
                         <div
                           style={{
@@ -835,7 +859,7 @@ export default function MessagesPage() {
                         >
                           {showSenderAvatar && activeConv?.isBroadcast && (
                             <Link
-                              href={`/profil?id=${sender.id}`}
+                              href={profileUrl(sender.id)}
                               style={{
                                 display: "block",
                                 fontSize: 12,

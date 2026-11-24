@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import AppNavbar from "@/components/AppNavbar";
 import PhotoLightbox from "@/components/PhotoLightbox";
 import { uploadMediaFile } from "@/lib/clientUpload";
@@ -28,6 +29,9 @@ export default function ProfilPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const viewId = searchParams.get("id");
+  const from = searchParams.get("from");
+  const backHref = from === "messages" ? "/messages" : "/journal";
+  const backLabel = from === "messages" ? "← Retour aux discussions" : "← Retour au journal";
 
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -156,8 +160,8 @@ export default function ProfilPage() {
     return (
       <div style={{ padding: 50, textAlign: "center" }}>
         <p>{statusMsg || "Profil introuvable."}</p>
-        <button type="button" onClick={() => router.push("/journal")} style={primaryBtn}>
-          Retour au journal
+        <button type="button" onClick={() => router.push(backHref)} style={primaryBtn}>
+          {backLabel}
         </button>
       </div>
     );
@@ -201,6 +205,24 @@ export default function ProfilPage() {
       />
 
       <main style={{ maxWidth: 940, margin: "0 auto", padding: "0 0 40px" }}>
+        <div style={{ padding: "10px 16px 0", display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+          <button type="button" onClick={() => router.push(backHref)} style={{ ...primaryBtn, background: "var(--bg-soft)", color: "var(--ink)" }}>
+            {backLabel}
+          </button>
+          {!profile.isOwnProfile && (
+            <Link
+              href="/messages"
+              onClick={(e) => {
+                e.preventDefault();
+                router.push("/messages");
+              }}
+              style={{ ...primaryBtn, textDecoration: "none" }}
+            >
+              💬 Messages
+            </Link>
+          )}
+        </div>
+
         {/* Couverture + avatar */}
         <section
           style={{
@@ -352,8 +374,8 @@ export default function ProfilPage() {
               )}
             </div>
 
-            {profile.isOwnProfile && (
-              <div style={{ display: "flex", gap: 8, paddingBottom: 8 }}>
+            <div style={{ display: "flex", gap: 8, paddingBottom: 8, flexWrap: "wrap" }}>
+              {profile.isOwnProfile && (
                 <button
                   type="button"
                   onClick={() => {
@@ -364,8 +386,11 @@ export default function ProfilPage() {
                 >
                   {editing ? "Fermer" : "Modifier le profil"}
                 </button>
-              </div>
-            )}
+              )}
+              <a href="#journal" style={{ ...primaryBtn, textDecoration: "none", background: "var(--bg-soft)", color: "var(--ink)" }}>
+                📰 Voir son journal
+              </a>
+            </div>
           </div>
         </section>
 
@@ -470,20 +495,30 @@ export default function ProfilPage() {
             </div>
           </aside>
 
-          {/* Publications */}
-          <section>
-            <div style={{ ...card, marginBottom: 12 }}>
-              <h2 style={{ margin: 0, fontSize: 18 }}>Publications</h2>
+          {/* Journal / Publications */}
+          <section id="journal">
+            <div style={{ ...card, marginBottom: 12, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+              <h2 style={{ margin: 0, fontSize: 18 }}>Journal · Publications</h2>
+              <a href="#journal" style={{ color: "var(--link)", fontWeight: 700, fontSize: 13, textDecoration: "none" }}>
+                Voir le journal
+              </a>
             </div>
             {(profile.posts || []).length === 0 ? (
               <div style={{ ...card, color: "var(--muted-2)", textAlign: "center" }}>Aucune publication pour le moment.</div>
             ) : (
               (profile.posts || []).map((post) => {
                 const mediaUrl = post.mediaUrl || post.image;
+                const isImage = mediaUrl && (post.mediaType === "IMAGE" || post.image);
                 return (
                   <article key={post.id} style={{ ...card, marginBottom: 12, padding: 0, overflow: "hidden" }}>
                     <div style={{ padding: "12px 16px", display: "flex", gap: 10, alignItems: "center" }}>
-                      <Avatar src={profile.photo} name={fullName} size={40} />
+                      <button
+                        type="button"
+                        onClick={() => openPhoto(profile.photo, `Photo de ${fullName}`)}
+                        style={{ border: "none", background: "transparent", padding: 0, cursor: profile.photo ? "zoom-in" : "default" }}
+                      >
+                        <Avatar src={profile.photo} name={fullName} size={40} />
+                      </button>
                       <div>
                         <div style={{ fontWeight: 700 }}>{fullName}</div>
                         <div style={{ fontSize: 12, color: "var(--muted-2)" }}>
@@ -494,8 +529,14 @@ export default function ProfilPage() {
                     {post.content && (
                       <div style={{ padding: "0 16px 12px", whiteSpace: "pre-wrap", lineHeight: 1.45 }}>{post.content}</div>
                     )}
-                    {mediaUrl && (post.mediaType === "IMAGE" || post.image) && (
-                      <img src={mediaUrl} alt="" style={{ width: "100%", maxHeight: 480, objectFit: "cover", display: "block" }} />
+                    {isImage && (
+                      <button
+                        type="button"
+                        onClick={() => openPhoto(mediaUrl, "Publication")}
+                        style={{ display: "block", width: "100%", padding: 0, border: "none", background: "transparent", cursor: "zoom-in" }}
+                      >
+                        <img src={mediaUrl} alt="" style={{ width: "100%", maxHeight: 480, objectFit: "cover", display: "block" }} />
+                      </button>
                     )}
                     {mediaUrl && post.mediaType === "VIDEO" && (
                       <video src={mediaUrl} controls style={{ width: "100%", display: "block", background: "#000" }} />
